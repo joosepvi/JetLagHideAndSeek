@@ -44,8 +44,16 @@ export const BusyIndicator = () => {
     );
 };
 
-// Lets the browser paint the indicator before heavy synchronous work starts
+// Lets the browser paint the indicator before heavy synchronous work starts.
+// Background tabs never fire animation frames, so a short timeout continues anyway.
 export const yieldToPaint = () =>
-    new Promise<void>((resolve) =>
-        requestAnimationFrame(() => setTimeout(resolve, 0)),
-    );
+    new Promise<void>((resolve) => {
+        let done = false;
+        const go = () => {
+            if (done) return;
+            done = true;
+            setTimeout(resolve, 0);
+        };
+        requestAnimationFrame(go);
+        setTimeout(go, 100);
+    });
