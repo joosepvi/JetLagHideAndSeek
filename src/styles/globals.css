@@ -98,17 +98,9 @@ div.leaflet-control-attribution.leaflet-control {
         --sidebar-ring: 217.2 91.2% 59.8%;
     }
 
-    main:not(.fullscreen)
-        .leaflet-control-container
-        .leaflet-top.leaflet-left
-        .leaflet-control {
-        @apply !mt-[104px] md:!mt-[40px];
-    }
-
-    main:not(.fullscreen)
-        .leaflet-top
-        .leaflet-control:not(.leaflet-control-easyPrint) {
-        @apply !mt-[104px] md:!mt-[40px];
+    /* Leaflet's top controls sit just below the sidebar buttons (44 px + 8 px gap) */
+    main .leaflet-top .leaflet-control:not(.leaflet-control-easyPrint) {
+        @apply !mt-[60px];
     }
 
     div.leaflet-top div.leaflet-control-easyPrint {
@@ -117,6 +109,16 @@ div.leaflet-control-attribution.leaflet-control {
 
     main.fullscreen div.leaflet-control-easyPrint {
         @apply hidden;
+    }
+
+    .busy-indicator {
+        opacity: 0;
+        animation: busy-fade-in 0.2s ease-out 0.15s forwards;
+    }
+    @keyframes busy-fade-in {
+        to {
+            opacity: 1;
+        }
     }
 
     .selected-card-background-temporary {

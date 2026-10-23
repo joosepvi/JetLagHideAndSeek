@@ -19,10 +19,10 @@ export default defineConfig({
         }),
         AstroPWA({
             manifest: {
-                name: "Jet Lag Hide and Seek Map Generator",
-                short_name: "Map Generator",
+                name: "Tallinna peitus",
+                short_name: "Tallinna peitus",
                 description:
-                    "Automatically generate maps for Jet Lag The Game: Hide and Seek with ease! Simply name the questions and watch the map eliminate hundreds of possibilities in seconds.",
+                    "Jet Lag: The Game Hide + Seek mängu kaart Tallinnas: peidualad, kombitsad, matching ja measuring küsimused, kõik Tallinna andmed rakenduses sees.",
                 icons: [
                     {
                         src: "/JLIcon.png",

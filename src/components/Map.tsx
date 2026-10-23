@@ -34,6 +34,7 @@ import { applyQuestionsToMapGeoData, holedMask } from "@/maps";
 import { hiderifyQuestion } from "@/maps";
 import { clearCache, determineMapBoundaries } from "@/maps/api";
 
+import { yieldToPaint } from "./BusyIndicator";
 import { CoastlineOverlay } from "./CoastlineOverlay";
 import { DraggableMarkers } from "./DraggableMarkers";
 import { LeafletFullScreenButton } from "./LeafletFullScreenButton";
@@ -146,6 +147,7 @@ export const Map = ({ className }: { className?: string }) => {
         if ($isLoading) return;
 
         isLoading.set(true);
+        await yieldToPaint();
 
         if ($questions.length === 0) {
             await clearCache();

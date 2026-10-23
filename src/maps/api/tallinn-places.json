@@ -1032,167 +1032,200 @@
   {
    "name": "Albaania Vabariigi Aukonsulaat",
    "lat": 59.431821,
-   "lng": 24.746819
+   "lng": 24.746819,
+   "country": "AL"
   },
   {
    "name": "Ameerika Ühendriikide Suursaatkond",
    "lat": 59.430478,
-   "lng": 24.751652
+   "lng": 24.751652,
+   "country": "US"
   },
   {
    "name": "Aserbaidžaani Suursaatkond Tallinnas",
    "lat": 59.446815,
-   "lng": 24.802818
+   "lng": 24.802818,
+   "country": "AZ"
   },
   {
    "name": "Austria Aukonsulaat",
    "lat": 59.484603,
-   "lng": 24.854851
+   "lng": 24.854851,
+   "country": "AT"
   },
   {
    "name": "Austria Suursaatkond",
    "lat": 59.431046,
-   "lng": 24.756122
+   "lng": 24.756122,
+   "country": "AT"
   },
   {
    "name": "Belgia Kuningriigi Aukonsulaat",
    "lat": 59.432421,
-   "lng": 24.748576
+   "lng": 24.748576,
+   "country": "BE"
   },
   {
    "name": "Brasiilia Liitvabariigi Suursaatkond",
    "lat": 59.431458,
-   "lng": 24.757713
+   "lng": 24.757713,
+   "country": "BR"
   },
   {
    "name": "Briti Suursaatkond",
    "lat": 59.432678,
-   "lng": 24.731595
+   "lng": 24.731595,
+   "country": "GB"
   },
   {
    "name": "Bulgaaria Vabariigi Aukonsulaat",
    "lat": 59.448127,
-   "lng": 24.72993
+   "lng": 24.72993,
+   "country": "BG"
   },
   {
    "name": "Fidži Vabariigi Aukonsulaat",
    "lat": 59.396663,
-   "lng": 24.669916
+   "lng": 24.669916,
+   "country": "FJ"
   },
   {
    "name": "Filipiinide Aukonsulaat",
    "lat": 59.438182,
-   "lng": 24.750606
+   "lng": 24.750606,
+   "country": "PH"
   },
   {
    "name": "Gruusia Suursaatkond",
    "lat": 59.4375,
-   "lng": 24.754009
+   "lng": 24.754009,
+   "country": "GE"
   },
   {
    "name": "Guatemala aukonsul Eestis",
    "lat": 59.439557,
-   "lng": 24.756505
+   "lng": 24.756505,
+   "country": "GT"
   },
   {
    "name": "Hiina Rahvavabariigi Suursaatkond",
    "lat": 59.442729,
-   "lng": 24.797045
+   "lng": 24.797045,
+   "country": "CN"
   },
   {
    "name": "Hispaania Kuningriigi Suursaatkond",
    "lat": 59.428536,
-   "lng": 24.749813
+   "lng": 24.749813,
+   "country": "ES"
   },
   {
    "name": "Hollandi Kuninglik Suursaatkond Tallinnas",
    "lat": 59.432809,
-   "lng": 24.759157
+   "lng": 24.759157,
+   "country": "NL"
   },
   {
    "name": "Horvaatia Vabariigi Aukonsulaat",
    "lat": 59.438472,
-   "lng": 24.744266
+   "lng": 24.744266,
+   "country": "HR"
   },
   {
    "name": "Iiri Suursaatkond",
    "lat": 59.433612,
-   "lng": 24.756922
+   "lng": 24.756922,
+   "country": "IE"
   },
   {
    "name": "Iisraeli Aukonsulaat",
    "lat": 59.433304,
-   "lng": 24.760005
+   "lng": 24.760005,
+   "country": "IL"
   },
   {
    "name": "India Vabariigi Suursaatkond",
    "lat": 59.432879,
-   "lng": 24.761115
+   "lng": 24.761115,
+   "country": "IN"
   },
   {
    "name": "Indoneesia Vabariigi Aukonsulaat",
    "lat": 59.428689,
-   "lng": 24.746472
+   "lng": 24.746472,
+   "country": "ID"
   },
   {
    "name": "Itaalia Suursaatkond",
    "lat": 59.43705,
-   "lng": 24.747005
+   "lng": 24.747005,
+   "country": "IT"
   },
   {
    "name": "Jaapani Suursaatkond Tallinnas",
    "lat": 59.434518,
-   "lng": 24.74293
+   "lng": 24.74293,
+   "country": "JP"
   },
   {
    "name": "Kanada Suursaatkonna esindus Eestis",
    "lat": 59.43674,
-   "lng": 24.737339
+   "lng": 24.737339,
+   "country": "CA"
   },
   {
    "name": "Kasahstani Vabariigi Suursaatkond",
    "lat": 59.433612,
-   "lng": 24.756922
+   "lng": 24.756922,
+   "country": "KZ"
   },
   {
    "name": "Kreeka Suursaatkond Tallinnas",
    "lat": 59.434518,
-   "lng": 24.74293
+   "lng": 24.74293,
+   "country": "GR"
   },
   {
    "name": "Kuninglik Taani Suursaatkond",
    "lat": 59.432941,
-   "lng": 24.737851
+   "lng": 24.737851,
+   "country": "DK"
   },
   {
    "name": "Küprose Vabariigi Aukonsulaat",
    "lat": 59.427091,
-   "lng": 24.655841
+   "lng": 24.655841,
+   "country": "CY"
   },
   {
    "name": "Leedu Vabariigi Suursaatkond",
    "lat": 59.439065,
-   "lng": 24.749723
+   "lng": 24.749723,
+   "country": "LT"
   },
   {
    "name": "Luksemburgi Suurhertsogiriigi Aukonsulaat",
    "lat": 59.438146,
-   "lng": 24.744172
+   "lng": 24.744172,
+   "country": "LU"
   },
   {
    "name": "Lõuna-Aafrika Vabariigi Aukonsulaat",
    "lat": 59.437415,
-   "lng": 24.75504
+   "lng": 24.75504,
+   "country": "ZA"
   },
   {
    "name": "Läti Vabariigi Suursaatkond",
    "lat": 59.42996,
-   "lng": 24.740893
+   "lng": 24.740893,
+   "country": "LV"
   },
   {
    "name": "Malaisia Aukonsulaat",
    "lat": 59.367274,
-   "lng": 24.643862
+   "lng": 24.643862,
+   "country": "MY"
   },
   {
    "name": "Malta ordu suursaatkond",
@@ -1202,117 +1235,140 @@
   {
    "name": "Maroko Kuningriigi Aukonsulaat",
    "lat": 59.427482,
-   "lng": 24.782859
+   "lng": 24.782859,
+   "country": "MA"
   },
   {
    "name": "Mehhiko Aukonsulaat",
    "lat": 59.437444,
-   "lng": 24.741337
+   "lng": 24.741337,
+   "country": "MX"
   },
   {
    "name": "Moldova Suursaatkond Tallinnas",
    "lat": 59.437517,
-   "lng": 24.759662
+   "lng": 24.759662,
+   "country": "MD"
   },
   {
    "name": "Mongoolia Aukonsulaat",
    "lat": 59.438146,
-   "lng": 24.744172
+   "lng": 24.744172,
+   "country": "MN"
   },
   {
    "name": "Norra Suursaatkond Tallinnas",
    "lat": 59.434518,
-   "lng": 24.74293
+   "lng": 24.74293,
+   "country": "NO"
   },
   {
    "name": "Pakistani Islamivabariigi Aukonsulaat",
    "lat": 59.426882,
-   "lng": 24.762709
+   "lng": 24.762709,
+   "country": "PK"
   },
   {
    "name": "Poola Vabariigi Suursaatkond",
    "lat": 59.43649,
-   "lng": 24.746498
+   "lng": 24.746498,
+   "country": "PL"
   },
   {
    "name": "Prantsuse Suursaatkond",
    "lat": 59.428342,
-   "lng": 24.735693
+   "lng": 24.735693,
+   "country": "FR"
   },
   {
    "name": "Põhja-Makedoonia Suursaatkond Tallinnas",
    "lat": 59.434518,
-   "lng": 24.74293
+   "lng": 24.74293,
+   "country": "MK"
   },
   {
    "name": "Rootsi Suursaatkond",
    "lat": 59.438985,
-   "lng": 24.746936
+   "lng": 24.746936,
+   "country": "SE"
   },
   {
    "name": "Rumeenia Suursaatkond",
    "lat": 59.433612,
-   "lng": 24.756922
+   "lng": 24.756922,
+   "country": "RO"
   },
   {
    "name": "Saksamaa Liitvabariigi Suursaatkond",
    "lat": 59.428956,
-   "lng": 24.737471
+   "lng": 24.737471,
+   "country": "DE"
   },
   {
    "name": "Slovakkia Vabariigi Aukonsulaat",
    "lat": 59.43406,
-   "lng": 24.75252
+   "lng": 24.75252,
+   "country": "SK"
   },
   {
    "name": "Soome Vabariigi Suursaatkond",
    "lat": 59.436405,
-   "lng": 24.740726
+   "lng": 24.740726,
+   "country": "FI"
   },
   {
    "name": "Šveitsi Aukonsulaat",
    "lat": 59.436234,
-   "lng": 24.776839
+   "lng": 24.776839,
+   "country": "CH"
   },
   {
    "name": "Tšehhi Vabariigi Suursaatkond",
    "lat": 59.439274,
-   "lng": 24.784018
+   "lng": 24.784018,
+   "country": "CZ"
   },
   {
    "name": "Tšiili Vabariigi Aukonsulaat",
    "lat": 59.429677,
-   "lng": 24.748005
+   "lng": 24.748005,
+   "country": "CL"
   },
   {
    "name": "Türgi Vabariigi Suursaatkond",
    "lat": 59.43778,
-   "lng": 24.77046
+   "lng": 24.77046,
+   "country": "TR"
   },
   {
    "name": "Ukraina Suursaatkond",
    "lat": 59.43996,
-   "lng": 24.784273
+   "lng": 24.784273,
+   "country": "UA"
   },
   {
    "name": "Ungari Suursaatkond",
    "lat": 59.433304,
-   "lng": 24.760005
+   "lng": 24.760005,
+   "country": "HU"
   },
   {
    "name": "Uruguay Aukonsulaat",
    "lat": 59.484446,
-   "lng": 24.842934
+   "lng": 24.842934,
+   "country": "UY"
   },
   {
    "name": "Valgevene Vabariigi Suursaatkond",
    "lat": 59.415766,
-   "lng": 24.737979
+   "lng": 24.737979,
+   "country": "BY"
   },
   {
    "name": "Venemaa Föderatsiooni Suursaatkond",
    "lat": 59.438476,
-   "lng": 24.745393
+   "lng": 24.745393,
+   "country": "RU"
   }
  ],
  "golf_course": [

@@ -26,6 +26,7 @@ import {
     displayStopPoints,
     hidingRadius,
     hidingRadiusUnits,
+    isCalculating,
     isLoading,
     leafletMapContext,
     planningModeEnabled,
@@ -58,6 +59,7 @@ import {
     safeUnion,
 } from "@/maps/geo-utils";
 
+import { yieldToPaint } from "./BusyIndicator";
 import { Checkbox } from "./ui/checkbox";
 import {
     Command,
@@ -180,11 +182,16 @@ export const ZoneSidebar = () => {
 
         removeStopPoints();
 
-        // Own pane above the green zones (overlay pane) but below popups
+        // Own pane above the green zones (overlay pane, 400) but below markers (600),
+        // so question markers and place icons keep their hover and drag.
+        // Canvas with a click tolerance keeps the small dots easy to hit.
         if (!map.getPane("stopPoints")) {
             const pane = map.createPane("stopPoints");
-            pane.style.zIndex = "610";
+            pane.style.zIndex = "590";
         }
+        // One renderer per map instance
+        const stopPointRenderer: L.Canvas = ((map as any)._stopPointRenderer ??=
+            L.canvas({ pane: "stopPoints", tolerance: 6 }));
 
         const selected: L.CircleMarker[] = [];
         const dots = L.layerGroup(
@@ -207,7 +214,8 @@ export const ZoneSidebar = () => {
                         isSelected
                             ? {
                                   pane: "stopPoints",
-                                  radius: 6,
+                                  renderer: stopPointRenderer,
+                                  radius: 5,
                                   color: "#7f1d1d",
                                   weight: 2,
                                   fillColor: "#dc2626",
@@ -215,9 +223,10 @@ export const ZoneSidebar = () => {
                               }
                             : {
                                   pane: "stopPoints",
-                                  radius: 3,
+                                  renderer: stopPointRenderer,
+                                  radius: 1.5,
                                   color: "#a16207",
-                                  weight: 1,
+                                  weight: 0.5,
                                   fillColor: "#facc15",
                                   fillOpacity: 1,
                               },
@@ -251,8 +260,10 @@ export const ZoneSidebar = () => {
                     marker.bindPopup(content);
                     // Right click opens the same choice instead of the map's menu
                     marker.on("contextmenu", (e) => {
-                        L.DomEvent.stop(e as any);
-                        marker.openPopup();
+                        // Stop the map's own menu (Leaflet event) and the browser's (DOM event)
+                        L.DomEvent.stopPropagation(e);
+                        L.DomEvent.preventDefault(e.originalEvent);
+                        marker.openPopup(e.latlng);
                     });
 
                     if (isSelected) selected.push(marker);
@@ -315,6 +326,7 @@ export const ZoneSidebar = () => {
 
         const initializeHidingZones = async () => {
             isLoading.set(true);
+            await yieldToPaint();
 
             const types = toTransitTypes($displayHidingZonesOptions);
             if (types.length === 0) {
@@ -513,6 +525,7 @@ export const ZoneSidebar = () => {
                     units: $hidingRadiusUnits,
                     properties: place,
                 });
+                isCalculating.set(isCalculating.get() + 1);
                 selectionProcess(
                     single,
                     map,
@@ -520,13 +533,17 @@ export const ZoneSidebar = () => {
                     showGeoJSON,
                     $questionFinishedMapData,
                     $hidingRadius,
-                ).catch((error) => {
-                    console.log("Error in hiding zone selection:", error);
-                    toast.error(
-                        "An error occurred during hiding zone selection",
-                        { toastId: "hiding-zone-selection-error" },
-                    );
-                });
+                )
+                    .finally(() =>
+                        isCalculating.set(Math.max(0, isCalculating.get() - 1)),
+                    )
+                    .catch((error) => {
+                        console.log("Error in hiding zone selection:", error);
+                        toast.error(
+                            "An error occurred during hiding zone selection",
+                            { toastId: "hiding-zone-selection-error" },
+                        );
+                    });
             } else {
                 toast.error("Invalid hiding zone selected", {
                     toastId: "hiding-zone-selection-error",

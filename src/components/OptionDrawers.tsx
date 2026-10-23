@@ -355,7 +355,7 @@ export const OptionDrawers = ({ className }: { className?: string }) => {
     return (
         <div
             className={cn(
-                "flex justify-end gap-2 max-[412px]:!mb-4 max-[640px]:overflow-x-auto max-[640px]:w-[85vw] max-[640px]:justify-start max-[640px]:[&>button]:flex-shrink-0 max-[640px]:[&>div]:flex-shrink-0 max-[640px]:pb-1",
+                "flex justify-start gap-1.5 max-[412px]:!mb-4 max-[640px]:overflow-x-auto max-[640px]:w-[85vw] max-[640px]:justify-start max-[640px]:[&>button]:flex-shrink-0 max-[640px]:[&>div]:flex-shrink-0 max-[640px]:pb-1",
                 className,
             )}
         >
@@ -371,21 +371,24 @@ export const OptionDrawers = ({ className }: { className?: string }) => {
                 }}
             />
             <Button
-                className="shadow-md"
+                size="sm"
+                className="shadow-md h-8 px-3 text-xs"
                 onClick={saveToFile}
                 title="Download current hiding zone as a JSON file"
             >
                 Save File
             </Button>
             <Button
-                className="shadow-md"
+                size="sm"
+                className="shadow-md h-8 px-3 text-xs"
                 onClick={() => fileInputRef.current?.click()}
                 title="Load a hiding zone from a JSON file"
             >
                 Load File
             </Button>
             <Button
-                className="shadow-md"
+                size="sm"
+                className="shadow-md h-8 px-3 text-xs"
                 onClick={async () => {
                     const hidingZoneString = JSON.stringify($hidingZone);
                     let compressedData;
@@ -459,7 +462,8 @@ export const OptionDrawers = ({ className }: { className?: string }) => {
                 Share
             </Button>
             <Button
-                className="w-24 shadow-md"
+                size="sm"
+                className="shadow-md h-8 px-3 text-xs"
                 onClick={() => {
                     showTutorial.set(true);
                 }}
@@ -467,9 +471,10 @@ export const OptionDrawers = ({ className }: { className?: string }) => {
                 Tutorial
             </Button>
             <Drawer open={isOptionsOpen} onOpenChange={setOptionsOpen}>
-                <DrawerTrigger className="w-24" asChild>
+                <DrawerTrigger asChild>
                     <Button
-                        className="w-24 shadow-md"
+                        size="sm"
+                        className="shadow-md h-8 px-3 text-xs"
                         data-tutorial-id="option-questions-button"
                     >
                         Options

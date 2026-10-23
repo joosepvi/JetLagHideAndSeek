@@ -296,8 +296,8 @@ const SidebarTrigger = React.forwardRef<
             data-sidebar="trigger"
             size="icon"
             className={cn(
-                "bg-white hover:bg-[#f4f4f4] text-black rounded-sm border-2 border-black border-opacity-30 cursor-pointer py-1 px-2",
-                "flex items-center gap-1",
+                "bg-white hover:bg-[#f4f4f4] text-black rounded-sm border-2 border-black border-opacity-30 cursor-pointer",
+                "flex items-center justify-center w-11 h-11 text-2xl",
                 className,
             )}
             onClick={(event) => {

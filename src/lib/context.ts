@@ -348,6 +348,8 @@ export const autoZoom = persistentAtom<boolean>("autoZoom", true, {
 });
 
 export const isLoading = atom<boolean>(false);
+// Extra work that shows the busy indicator without blocking other updates (e.g. hiding zone selection)
+export const isCalculating = atom<number>(0);
 
 export const baseTileLayer = persistentAtom<
     "voyager" | "light" | "dark" | "transport" | "neighbourhood" | "osmcarto"

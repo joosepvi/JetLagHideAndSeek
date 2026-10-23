@@ -32,7 +32,7 @@ interface TutorialStep {
 
 const tutorialSteps: TutorialStep[] = [
     {
-        title: "Welcome to the Jet Lag Hide and Seek Map Generator!",
+        title: "Welcome to Tallinna peitus!",
         content: (
             <>
                 Welcome to the the Hide and Seek map generator designed for the

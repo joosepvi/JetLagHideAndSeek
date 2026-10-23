@@ -12,7 +12,7 @@ const { className } = Astro.props;
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang="et">
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width" />
@@ -82,10 +82,10 @@ const { className } = Astro.props;
         </script>
         <meta name="generator" content={Astro.generator} />
         <!-- HTML Meta Tags -->
-        <title>Map Generator for Jet Lag The Game: Hide and Seek</title>
+        <title>Tallinna peitus</title>
         <meta
             name="description"
-            content="Automatically generate maps for Jet Lag The Game: Hide and Seek with ease! Simply name the questions and watch the map eliminate hundreds of possibilities in seconds."
+            content="Jet Lag: The Game Hide + Seek mängu kaart Tallinnas: peidualad, kombitsad, matching ja measuring küsimused, kõik Tallinna andmed rakenduses sees."
         />
 
         <!-- Facebook Meta Tags -->
@@ -94,17 +94,19 @@ const { className } = Astro.props;
             content={Astro.site?.href}
         />
         <meta property="og:type" content="website" />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
         <meta
             property="og:title"
-            content="Map Generator for Jet Lag The Game: Hide and Seek"
+            content="Tallinna peitus"
         />
         <meta
             property="og:description"
-            content="Automatically generate maps for Jet Lag The Game: Hide and Seek with ease! Simply name the questions and watch the map eliminate hundreds of possibilities in seconds."
+            content="Jet Lag: The Game Hide + Seek mängu kaart Tallinnas: peidualad, kombitsad, matching ja measuring küsimused, kõik Tallinna andmed rakenduses sees."
         />
         <meta
             property="og:image"
-            content={new URL("/JLIcon.png", Astro.site).href}
+            content={new URL("/og-image.png", Astro.site).href}
         />
 
         <!-- Twitter Meta Tags -->
@@ -116,15 +118,15 @@ const { className } = Astro.props;
         />
         <meta
             name="twitter:title"
-            content="Map Generator for Jet Lag The Game: Hide and Seek"
+            content="Tallinna peitus"
         />
         <meta
             name="twitter:description"
-            content="Automatically generate maps for Jet Lag The Game: Hide and Seek with ease! Simply name the questions and watch the map eliminate hundreds of possibilities in seconds."
+            content="Jet Lag: The Game Hide + Seek mängu kaart Tallinnas: peidualad, kombitsad, matching ja measuring küsimused, kõik Tallinna andmed rakenduses sees."
         />
         <meta
             name="twitter:image"
-            content={new URL("/JLIcon.png", Astro.site).href}
+            content={new URL("/og-image.png", Astro.site).href}
         />
 
         {pwaInfo && <Fragment set:html={pwaInfo.webManifest.linkTag} />}
