@@ -2074,5 +2074,42 @@
    "lat": 59.421696,
    "lng": 24.800235
   }
+ ],
+ "mcdonalds": [
+  {
+   "name": "McDonald's (Juhan Smuuli tee 43/1)",
+   "lat": 59.428884,
+   "lng": 24.838497
+  },
+  {
+   "name": "McDonald's (Paldiski mnt 102/1)",
+   "lat": 59.425817,
+   "lng": 24.654449
+  },
+  {
+   "name": "McDonald's (Sõpruse pst 200b)",
+   "lat": 59.405954,
+   "lng": 24.700551
+  },
+  {
+   "name": "McDonald's (Viru 24)",
+   "lat": 59.436472,
+   "lng": 24.749935
+  },
+  {
+   "name": "McDonald's (Ülemiste Suur-Sõjamäe)",
+   "lat": 59.422753,
+   "lng": 24.793777
+  },
+  {
+   "name": "McDonald's Lasnamäe",
+   "lat": 59.442369,
+   "lng": 24.874678
+  },
+  {
+   "name": "McDonald's Sõle",
+   "lat": 59.432473,
+   "lng": 24.713635
+  }
  ]
 }

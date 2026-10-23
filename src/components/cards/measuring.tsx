@@ -24,6 +24,7 @@ import {
     triggerLocalRefresh,
 } from "@/lib/context";
 import { cn } from "@/lib/utils";
+import { TALLINN_ZONE_LEVELS } from "@/maps/api";
 import {
     determineMeasuringBoundary,
     findAdminZoneInfo,
@@ -72,24 +73,14 @@ export const MeasuringQuestionComponent = ({
                 <>
                     <SidebarMenuItem className={MENU_ITEM_CLASSNAME}>
                         <Select
-                            trigger="OSM Zone"
-                            options={{
-                                2: "OSM Zone 2 (Country)",
-                                3: "OSM Zone 3 (region in Japan)",
-                                4: "OSM Zone 4 (prefecture in Japan)",
-                                5: "OSM Zone 5",
-                                6: "OSM Zone 6",
-                                7: "OSM Zone 7",
-                                8: "OSM Zone 8",
-                                9: "OSM Zone 9",
-                                10: "OSM Zone 10",
-                            }}
+                            trigger="Zone"
+                            options={TALLINN_ZONE_LEVELS}
                             value={(
-                                (data as any).cat?.adminLevel ?? 4
+                                (data as any).cat?.adminLevel ?? 9
                             ).toString()}
                             onValueChange={(value) => {
                                 if (!(data as any).cat) {
-                                    (data as any).cat = { adminLevel: 4 };
+                                    (data as any).cat = { adminLevel: 9 };
                                 }
                                 (data as any).cat.adminLevel = parseInt(
                                     value,
@@ -128,7 +119,6 @@ export const MeasuringQuestionComponent = ({
             );
             break;
         case "mcdonalds":
-        case "seven11":
             questionSpecific = (
                 <span className="px-2 text-center text-orange-500">
                     This question will eliminate hiding zones that don&apos;t
@@ -138,9 +128,7 @@ export const MeasuringQuestionComponent = ({
                 </span>
             );
             break;
-        case "aquarium":
         case "hospital":
-        case "peak":
         case "museum":
         case "theme_park":
         case "zoo":
@@ -317,7 +305,7 @@ export const MeasuringQuestionComponent = ({
                             return;
                         }
                         if (value === "admin-measure" && !(data as any).cat) {
-                            (data as any).cat = { adminLevel: 4 };
+                            (data as any).cat = { adminLevel: 9 };
                         }
                         data.type = value;
                         questionModified();
@@ -376,7 +364,7 @@ export const MeasuringQuestionComponent = ({
 const AdminZoneNameDisplay = ({ data }: { data: MeasuringQuestion }) => {
     useStore(triggerLocalRefresh);
 
-    const adminLevel = (data as any).cat?.adminLevel ?? 4;
+    const adminLevel = (data as any).cat?.adminLevel ?? 9;
     const zoneInfo = use(findAdminZoneInfo(data.lat, data.lng, adminLevel));
 
     // Update the zone name in the data

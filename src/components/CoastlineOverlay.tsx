@@ -1,62 +1,9 @@
 import { useStore } from "@nanostores/react";
-import * as turf from "@turf/turf";
-import type { Feature, LineString,MultiLineString } from "geojson";
-import { useEffect, useState } from "react";
 import { Fragment } from "react/jsx-runtime";
-import { CircleMarker, GeoJSON, Polyline, Tooltip } from "react-leaflet";
+import { CircleMarker, Polyline, Tooltip } from "react-leaflet";
 
-import { polyGeoJSON, questions, triggerLocalRefresh } from "@/lib/context";
-import tallinnBoundary from "@/maps/api/tallinn.json";
-import {
-    coastlineZone,
-    formatMeters,
-    nearestCoastline,
-} from "@/maps/questions/coastline";
-
-// Outline of B (the coastline buffered by d), only inside the play area
-const BufferOutline = ({
-    lat,
-    lng,
-    hiderCloser,
-}: {
-    lat: number;
-    lng: number;
-    hiderCloser: boolean;
-}) => {
-    const [outline, setOutline] = useState<Feature<
-        LineString | MultiLineString
-    > | null>(null);
-
-    useEffect(() => {
-        let cancelled = false;
-        coastlineZone(lat, lng, hiderCloser)
-            .then((zone) => {
-                if (cancelled || !zone) return setOutline(null);
-                const area = (polyGeoJSON.get() ?? tallinnBoundary) as any;
-                const inside = turf.intersect(
-                    turf.featureCollection([
-                        turf.combine(area).features[0] as any,
-                        zone,
-                    ]),
-                );
-                setOutline(inside ? (turf.polygonToLine(inside) as any) : null);
-            })
-            .catch(() => setOutline(null));
-        return () => {
-            cancelled = true;
-        };
-    }, [lat, lng, hiderCloser]);
-
-    if (!outline) return null;
-    return (
-        <GeoJSON
-            key={`${lat},${lng},${hiderCloser}`}
-            data={outline}
-            style={{ color: "#2563eb", weight: 1.5, dashArray: "4 4" }}
-            interactive={false}
-        />
-    );
-};
+import { questions, triggerLocalRefresh } from "@/lib/context";
+import { formatMeters, nearestCoastline } from "@/maps/questions/coastline";
 
 // For each coastline question: nearest coastline point, the straight line to it and d
 export const CoastlineOverlay = () => {
@@ -72,7 +19,7 @@ export const CoastlineOverlay = () => {
                     question.data.hidden
                 )
                     return null;
-                const { lat, lng, hiderCloser } = question.data;
+                const { lat, lng } = question.data;
                 const { meters, nearest } = nearestCoastline(lng, lat);
 
                 return (
@@ -106,11 +53,6 @@ export const CoastlineOverlay = () => {
                                 Nearest coastline ({formatMeters(meters)})
                             </Tooltip>
                         </CircleMarker>
-                        <BufferOutline
-                            lat={lat}
-                            lng={lng}
-                            hiderCloser={hiderCloser}
-                        />
                     </Fragment>
                 );
             })}

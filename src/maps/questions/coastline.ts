@@ -11,6 +11,7 @@ import type {
     Polygon,
 } from "geojson";
 
+import tallinnBoundary from "@/maps/api/tallinn.json";
 import tallinnCoast from "@/maps/api/tallinn-coast.json";
 import { arcBuffer } from "@/maps/geo-utils";
 
@@ -20,6 +21,11 @@ export const COASTLINE_LAKES: string[] = [];
 
 // Boundary tolerance: when in doubt the area is kept
 const TOLERANCE_M = 10;
+// Speed: coastline simplified to ~20 m for the calculation, buffer arcs within 5 m
+const SIMPLIFY_DEG = 0.00018;
+const ARC_DEVIATION_M = 5;
+// Play area box (Tallinn) the result is ever shown in
+const PLAY_BBOX = turf.bbox(tallinnBoundary as any);
 
 let cachedLines: FeatureCollection<LineString> | null = null;
 export const coastlineLines = () => {
@@ -31,13 +37,30 @@ export const coastlineLines = () => {
                     (tallinnCoast.lakes as Record<string, any>)[name] ?? null,
             ).filter(Boolean),
         ];
-        cachedLines = turf.featureCollection(
-            parts.flatMap(
-                (part) =>
-                    turf.flatten(part as any)
-                        .features as unknown as Feature<LineString>[],
-            ),
-        );
+        const lines: Feature<LineString>[] = [];
+        for (const part of parts) {
+            for (const line of turf.flatten(part as any)
+                .features as unknown as Feature<LineString>[]) {
+                const simple = turf.simplify(line, {
+                    tolerance: SIMPLIFY_DEG,
+                    highQuality: true,
+                }) as Feature<LineString>;
+                // Tiny islands can collapse to one repeated point; those are dropped
+                // (a zero-length line breaks the distance calculation)
+                const coords = turf
+                    .cleanCoords(simple)
+                    .geometry.coordinates.filter(
+                        (c: number[]) =>
+                            Number.isFinite(c[0]) && Number.isFinite(c[1]),
+                    );
+                const distinct = new Set(
+                    coords.map((c: number[]) => c.join(",")),
+                );
+                if (coords.length >= 2 && distinct.size >= 2)
+                    lines.push(turf.lineString(coords, line.properties));
+            }
+        }
+        cachedLines = turf.featureCollection(lines);
     }
     return cachedLines;
 };
@@ -45,6 +68,58 @@ export const coastlineLines = () => {
 export const WATER = tallinnCoast.water as unknown as Feature<
     Polygon | MultiPolygon
 >;
+
+// Water near Tallinn only, simplified: removing it from results is much faster
+let cachedNearWater: Feature<Polygon | MultiPolygon> | null = null;
+const nearWater = () => {
+    if (!cachedNearWater) {
+        const [w, s, e, n] = PLAY_BBOX;
+        const clipped = turf.bboxClip(WATER, [
+            w - 0.02,
+            s - 0.01,
+            e + 0.02,
+            n + 0.01,
+        ]) as Feature<Polygon | MultiPolygon>;
+        const simple = turf.simplify(clipped, {
+            tolerance: 0.00005,
+            highQuality: true,
+        });
+        // Clipping and simplifying can leave rings with too few points; keep valid ones
+        const polygons = (
+            simple.geometry.type === "Polygon"
+                ? [simple.geometry.coordinates]
+                : simple.geometry.coordinates
+        )
+            .map((rings) => rings.filter((ring) => ring.length >= 4))
+            .filter((rings) => rings.length > 0);
+        cachedNearWater = turf.multiPolygon(polygons);
+    }
+    return cachedNearWater;
+};
+
+// Only coastline that can reach the play area within the given distance matters
+const linesNear = (meters: number) => {
+    const pad = meters / 1000 / 111 + 0.005; // degrees latitude, generous
+    const padLng = pad / Math.cos((59.43 * Math.PI) / 180);
+    const [w, s, e, n] = PLAY_BBOX;
+    const box: [number, number, number, number] = [
+        w - padLng,
+        s - pad,
+        e + padLng,
+        n + pad,
+    ];
+    return turf.featureCollection(
+        coastlineLines().features.flatMap((line) => {
+            const [lw, ls, le, ln] = turf.bbox(line);
+            if (le < box[0] || lw > box[2] || ln < box[1] || ls > box[3])
+                return [];
+            return (
+                turf.flatten(turf.bboxClip(line, box) as any)
+                    .features as unknown as Feature<LineString>[]
+            ).filter((part) => part.geometry.coordinates.length >= 2);
+        }),
+    );
+};
 
 // Shortest straight-line distance (metres) from a point to the coastline, and where
 export const nearestCoastline = (lng: number, lat: number) => {
@@ -76,10 +151,13 @@ export const coastlineZone = async (
         ? meters + TOLERANCE_M
         : Math.max(meters - TOLERANCE_M, 0);
     if (radius <= 0) return null;
+    const lines = linesNear(radius);
+    if (lines.features.length === 0) return null;
     return (await arcBuffer(
-        coastlineLines() as FeatureCollection,
+        lines as FeatureCollection,
         radius,
         "meters",
+        ARC_DEVIATION_M,
     )) as Feature<Polygon | MultiPolygon>;
 };
 
@@ -87,7 +165,7 @@ export const removeWater = (
     area: Feature<Polygon | MultiPolygon> | null | undefined,
 ) => {
     if (!area) return area;
-    const dry = turf.difference(turf.featureCollection([area, WATER]));
+    const dry = turf.difference(turf.featureCollection([area, nearWater()]));
     if (!dry) return null;
     // Snap to ~1 cm and drop repeated points so the result stays a valid polygon
     return turf.cleanCoords(turf.truncate(dry, { precision: 7 }));

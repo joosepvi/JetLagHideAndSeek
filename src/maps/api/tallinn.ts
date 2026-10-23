@@ -118,7 +118,7 @@ export const TRANSIT_OPTIONS: { label: string; value: TransitType }[] = [
     { label: "Train stops (Elron)", value: "train" },
     { label: "Tram stops", value: "tram" },
     { label: "Bus stops", value: "bus" },
-    { label: "Ferry stops (Tallinn–Aegna)", value: "ferry" },
+    { label: "Ferry and sea taxi stops", value: "ferry" },
 ];
 
 // Older saved settings used OSM filters; map them to transit types

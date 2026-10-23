@@ -37,15 +37,15 @@ import {
 import { cn } from "@/lib/utils";
 import {
     BLANK_GEOJSON,
-    findPlacesSpecificInZone,
     findTentacleLocations,
+    getTallinnPlaces,
     getTransitStations,
     nearestToQuestion,
-    QuestionSpecificLocation,
     sharesLine,
     type StationCircle,
     type StationPlace,
     stationZone,
+    toPoints,
     toTransitTypes,
     TRANSIT_OPTIONS,
 } from "@/maps/api";
@@ -60,6 +60,7 @@ import {
 } from "@/maps/geo-utils";
 
 import { yieldToPaint } from "./BusyIndicator";
+import { getPointsRenderer, raisePlaceIcons } from "./mapPoints";
 import { Checkbox } from "./ui/checkbox";
 import {
     Command,
@@ -124,6 +125,11 @@ export const ZoneSidebar = () => {
         const geoJsonLayer = L.geoJSON(geoJSONData, {
             // Zones never catch clicks, so the stop points underneath stay clickable
             interactive: false,
+            // Canvas: up to ~1100 circles are much cheaper to draw than SVG on phones
+            // @ts-expect-error renderer is passed on to each vector layer
+            renderer: ((map as any)._zonesRenderer ??= L.canvas({
+                padding: 0.3,
+            })),
             style: {
                 color: "green",
                 weight: 0.8,
@@ -182,16 +188,8 @@ export const ZoneSidebar = () => {
 
         removeStopPoints();
 
-        // Own pane above the green zones (overlay pane, 400) but below markers (600),
-        // so question markers and place icons keep their hover and drag.
-        // Canvas with a click tolerance keeps the small dots easy to hit.
-        if (!map.getPane("stopPoints")) {
-            const pane = map.createPane("stopPoints");
-            pane.style.zIndex = "590";
-        }
-        // One renderer per map instance
-        const stopPointRenderer: L.Canvas = ((map as any)._stopPointRenderer ??=
-            L.canvas({ pane: "stopPoints", tolerance: 6 }));
+        // Shared points canvas (see mapPoints.ts)
+        const stopPointRenderer = getPointsRenderer(map);
 
         const selected: L.CircleMarker[] = [];
         const dots = L.layerGroup(
@@ -276,6 +274,8 @@ export const ZoneSidebar = () => {
         dots.stopPoints = true;
 
         dots.addTo(map);
+        // Place icons above the stops, the chosen stop above everything
+        raisePlaceIcons(map);
         selected.forEach((marker) => marker.bringToFront());
     };
 
@@ -433,14 +433,9 @@ export const ZoneSidebar = () => {
                 }
                 if (
                     question.id === "measuring" &&
-                    (question.data.type === "mcdonalds" ||
-                        question.data.type === "seven11")
+                    question.data.type === "mcdonalds"
                 ) {
-                    const points = await findPlacesSpecificInZone(
-                        question.data.type === "mcdonalds"
-                            ? QuestionSpecificLocation.McDonalds
-                            : QuestionSpecificLocation.Seven11,
-                    );
+                    const points = toPoints(getTallinnPlaces("mcdonalds"));
 
                     const nearestPoint = turf.nearestPoint(
                         turf.point([question.data.lng, question.data.lat]),
@@ -991,10 +986,8 @@ async function selectionProcess(
 
         if (
             (question.id === "measuring" || question.id === "matching") &&
-            (question.data.type === "aquarium" ||
-                question.data.type === "zoo" ||
+            (question.data.type === "zoo" ||
                 question.data.type === "theme_park" ||
-                question.data.type === "peak" ||
                 question.data.type === "museum" ||
                 question.data.type === "hospital" ||
                 question.data.type === "cinema" ||
@@ -1161,16 +1154,8 @@ async function selectionProcess(
                 );
             }
         }
-        if (
-            question.id === "measuring" &&
-            (question.data.type === "mcdonalds" ||
-                question.data.type === "seven11")
-        ) {
-            const points = await findPlacesSpecificInZone(
-                question.data.type === "mcdonalds"
-                    ? QuestionSpecificLocation.McDonalds
-                    : QuestionSpecificLocation.Seven11,
-            );
+        if (question.id === "measuring" && question.data.type === "mcdonalds") {
+            const points = toPoints(getTallinnPlaces("mcdonalds"));
 
             const seeker = turf.point([question.data.lng, question.data.lat]);
             const nearest = turf.nearestPoint(seeker, points as any);

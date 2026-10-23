@@ -84,22 +84,25 @@ export const arcDistance = (
             ),
         );
 
+// maxDeviation: how far the buffer's curves may stray from the true arc (default 3 feet)
 export const arcBuffer = (
     geometry: FeatureCollection,
     distance: number,
     unit: units.LengthUnit & turf.Units = DEFAULT_BUFFER_UNIT,
+    maxDeviation?: number,
 ) => {
     const arcgisGeometry = geometry.features.map((x) =>
         geometryJsonUtils.fromJSON(geojsonToArcGIS(x.geometry)),
     ) as unionTypes.GeometryUnion[];
 
-    return innateArcBuffer(arcgisGeometry, distance, unit);
+    return innateArcBuffer(arcgisGeometry, distance, unit, maxDeviation);
 };
 
 const innateArcBuffer = async (
     arcgisGeometry: unionTypes.GeometryUnion[],
     distance: number,
     unit: units.LengthUnit & turf.Units = DEFAULT_BUFFER_UNIT,
+    maxDeviation?: number,
 ) => {
     await geodesicBufferOperator.load();
 
@@ -109,7 +112,7 @@ const innateArcBuffer = async (
         {
             union: true,
             unit: unit,
-            maxDeviation: turf.convertLength(3, "feet", unit),
+            maxDeviation: maxDeviation ?? turf.convertLength(3, "feet", unit),
         },
     );
 
@@ -142,5 +145,11 @@ export const arcBufferToPoint = async (
         }),
     );
 
-    return innateArcBuffer(arcgisGeometry, Math.min(...distances));
+    // 2 m curve accuracy is plenty for the game and much faster than the 3 ft default
+    return innateArcBuffer(
+        arcgisGeometry,
+        Math.min(...distances),
+        DEFAULT_BUFFER_UNIT,
+        turf.convertLength(2, "meters", DEFAULT_BUFFER_UNIT),
+    );
 };

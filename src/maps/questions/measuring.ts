@@ -1,7 +1,5 @@
 import * as turf from "@turf/turf";
-import type { Feature } from "geojson";
 import _ from "lodash";
-import osmtogeojson from "osmtogeojson";
 import { toast } from "react-toastify";
 
 import {
@@ -12,19 +10,15 @@ import {
     trainStations,
 } from "@/lib/context";
 import {
-    findAdminBoundary,
-    findPlacesInZone,
-    findPlacesSpecificInZone,
-    LOCATION_FIRST_TAG,
+    findTallinnZone,
+    getTallinnPlaces,
     nearestToQuestion,
-    prettifyLocation,
-    QuestionSpecificLocation,
+    TALLINN_AIRPORTS,
+    toPoints,
 } from "@/maps/api";
 import {
     arcBufferToPoint,
     arcDistance,
-    connectToSeparateLines,
-    groupObjects,
     holedMask,
     modifyMapData,
 } from "@/maps/geo-utils";
@@ -52,16 +46,14 @@ export const findAdminZoneInfo = _.memoize(
         lng: number,
         adminLevel: 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10,
     ): Promise<AdminZoneInfo | null> => {
-        const boundary = await findAdminBoundary(lat, lng, adminLevel);
+        // Built-in Tallinn districts (9) and subdistricts (10)
+        const boundary = findTallinnZone(lat, lng, adminLevel);
 
         if (!boundary) {
             return null;
         }
 
-        const name =
-            boundary.properties?.["name:en"] ??
-            boundary.properties?.name ??
-            "Unknown";
+        const name = boundary.properties.name ?? "Unknown";
 
         return { name, boundary };
     },
@@ -69,52 +61,12 @@ export const findAdminZoneInfo = _.memoize(
         `${lat.toFixed(6)},${lng.toFixed(6)},${adminLevel}`,
 );
 
-const highSpeedBase = _.memoize(
-    (features: Feature[]) => {
-        const grouped = groupObjects(features);
-
-        const neighbored = grouped
-            .map((group) => {
-                return turf.multiLineString(
-                    connectToSeparateLines(
-                        group
-                            .filter((x) => turf.getType(x) === "LineString")
-                            .map((x) => x.geometry.coordinates),
-                    ),
-                );
-            })
-            .filter((x) => x.geometry.coordinates.length > 0);
-
-        return turf.combine(
-            turf.buffer(
-                turf.simplify(turf.featureCollection(neighbored), {
-                    tolerance: 0.001,
-                }),
-                0.001,
-            )!,
-        ).features[0];
-    },
-    (features) => `${JSON.stringify(features.map((x) => x.geometry))}`,
-);
-
 export const determineMeasuringBoundary = async (
     question: MeasuringQuestion,
 ) => {
     switch (question.type) {
-        case "highspeed-measure-shinkansen": {
-            const features = osmtogeojson(
-                await findPlacesInZone(
-                    "[highspeed=yes]",
-                    "Finding high-speed lines...",
-                    "nwr",
-                    "geom",
-                ),
-            ).features;
-
-            return [highSpeedBase(features)];
-        }
         case "admin-measure": {
-            const adminLevel = (question as any).cat?.adminLevel ?? 4;
+            const adminLevel = (question as any).cat?.adminLevel ?? 9;
             const zoneInfo = await findAdminZoneInfo(
                 question.lat,
                 question.lng,
@@ -140,48 +92,10 @@ export const determineMeasuringBoundary = async (
             // Handled separately (see coastline.ts)
             return false;
         case "airport":
-            return [
-                turf.combine(
-                    turf.featureCollection(
-                        _.uniqBy(
-                            (
-                                await findPlacesInZone(
-                                    '["aeroway"="aerodrome"]["iata"]', // Only commercial airports have IATA codes,
-                                    "Finding airports...",
-                                )
-                            ).elements,
-                            (feature: any) => feature.tags.iata,
-                        ).map((x: any) =>
-                            turf.point([
-                                x.center ? x.center.lon : x.lon,
-                                x.center ? x.center.lat : x.lat,
-                            ]),
-                        ),
-                    ),
-                ).features[0],
-            ];
-        case "city":
-            return [
-                turf.combine(
-                    turf.featureCollection(
-                        (
-                            await findPlacesInZone(
-                                '[place=city]["population"~"^[1-9]+[0-9]{6}$"]', // The regex is faster than (if:number(t["population"])>1000000)
-                                "Finding cities...",
-                            )
-                        ).elements.map((x: any) =>
-                            turf.point([
-                                x.center ? x.center.lon : x.lon,
-                                x.center ? x.center.lat : x.lat,
-                            ]),
-                        ),
-                    ),
-                ).features[0],
-            ];
-        case "aquarium-full":
+            // Airports and airstrips around Tallinn
+            return [turf.combine(toPoints(TALLINN_AIRPORTS)).features[0]];
         case "zoo-full":
         case "theme_park-full":
-        case "peak-full":
         case "museum-full":
         case "hospital-full":
         case "cinema-full":
@@ -189,58 +103,18 @@ export const determineMeasuringBoundary = async (
         case "golf_course-full":
         case "consulate-full":
         case "park-full": {
+            // Nearest one may be just outside Tallinn, so the whole built-in list counts
             const location = question.type.split("-full")[0] as APILocations;
-
-            const data = await findPlacesInZone(
-                `[${LOCATION_FIRST_TAG[location]}=${location}]`,
-                `Finding ${prettifyLocation(location, true).toLowerCase()}...`,
-                "nwr",
-                "center",
-                [],
-                60,
-            );
-
-            if (data.remark && data.remark.startsWith("runtime error")) {
-                toast.error(
-                    `Error finding ${prettifyLocation(
-                        location,
-                        true,
-                    ).toLowerCase()}. Please enable hiding zone mode and switch to the Large Game variation of this question.`,
-                );
-                return [turf.multiPolygon([])];
-            }
-
-            if (data.elements.length >= 1000) {
-                toast.error(
-                    `Too many ${prettifyLocation(
-                        location,
-                        true,
-                    ).toLowerCase()} found (${data.elements.length}). Please enable hiding zone mode and switch to the Large Game variation of this question.`,
-                );
-                return [turf.multiPolygon([])];
-            }
-
             return [
-                turf.combine(
-                    turf.featureCollection(
-                        data.elements.map((x: any) =>
-                            turf.point([
-                                x.center ? x.center.lon : x.lon,
-                                x.center ? x.center.lat : x.lat,
-                            ]),
-                        ),
-                    ),
-                ).features[0],
+                turf.combine(toPoints(getTallinnPlaces(location))).features[0],
             ];
         }
         case "custom-measure":
             return turf.combine(
                 turf.featureCollection((question as any).geo.features),
             ).features;
-        case "aquarium":
         case "zoo":
         case "theme_park":
-        case "peak":
         case "museum":
         case "hospital":
         case "cinema":
@@ -249,7 +123,6 @@ export const determineMeasuringBoundary = async (
         case "consulate":
         case "park":
         case "mcdonalds":
-        case "seven11":
         case "rail-measure":
             return false;
     }
@@ -329,10 +202,8 @@ export const hiderifyMeasuring = async (question: MeasuringQuestion) => {
 
     if (
         [
-            "aquarium",
             "zoo",
             "theme_park",
-            "peak",
             "museum",
             "hospital",
             "cinema",
@@ -397,12 +268,8 @@ export const hiderifyMeasuring = async (question: MeasuringQuestion) => {
         question.hiderCloser = hiderDistance < distance;
     }
 
-    if (question.type === "mcdonalds" || question.type === "seven11") {
-        const points = await findPlacesSpecificInZone(
-            question.type === "mcdonalds"
-                ? QuestionSpecificLocation.McDonalds
-                : QuestionSpecificLocation.Seven11,
-        );
+    if (question.type === "mcdonalds") {
+        const points = toPoints(getTallinnPlaces("mcdonalds"));
 
         const seeker = turf.point([question.lng, question.lat]);
         const nearest = turf.nearestPoint(seeker, points as any);
