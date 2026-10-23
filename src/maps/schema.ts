@@ -112,7 +112,7 @@ const getDefaultUnit = () => {
 };
 
 const radiusQuestionSchema = ordinaryBaseQuestionSchema.extend({
-    radius: z.number().min(0, "You cannot have a negative radius").default(50),
+    radius: z.number().min(0, "You cannot have a negative radius").default(1),
     unit: unitsSchema.default(getDefaultUnit),
     within: z.boolean().default(true),
 });
@@ -120,7 +120,7 @@ const radiusQuestionSchema = ordinaryBaseQuestionSchema.extend({
 const tentacleLocationsFifteen = z.union([
     z.literal("theme_park").describe("Theme Parks"),
     z.literal("zoo").describe("Zoos"),
-    z.literal("aquarium").describe("Aquariums"),
+    // Aquariums removed from tentacles: there are none in Tallinn
 ]);
 
 const tentacleLocationsOne = z.union([
@@ -135,12 +135,22 @@ const apiLocationSchema = z.union([
     z.literal("consulate"),
     z.literal("park"),
     z.literal("peak"),
+    z.literal("aquarium"),
     tentacleLocationsFifteen,
     tentacleLocationsOne,
 ]);
 
+// Tallinn is a small game: Jet Lag rules use 1 mile (≈1.6 km) for museums, libraries,
+// cinemas and hospitals, and 15 miles (≈24 km) for zoos and theme parks
+export const TENTACLE_SMALL_RADIUS_KM = 1.6;
+export const TENTACLE_LARGE_RADIUS_KM = 24;
+export const TENTACLE_LARGE_TYPES = ["theme_park", "zoo"];
+
 const baseTentacleQuestionSchema = ordinaryBaseQuestionSchema.extend({
-    radius: z.number().min(0, "You cannot have a negative radius").default(15),
+    radius: z
+        .number()
+        .min(0, "You cannot have a negative radius")
+        .default(TENTACLE_SMALL_RADIUS_KM),
     unit: unitsSchema.default(getDefaultUnit),
     location: z
         .union([
@@ -167,7 +177,7 @@ const tentacleQuestionSpecificSchemaFifteen = baseTentacleQuestionSchema.extend(
 );
 
 const tentacleQuestionSpecificSchemaOne = baseTentacleQuestionSchema.extend({
-    locationType: tentacleLocationsOne,
+    locationType: tentacleLocationsOne.default("museum"),
     places: z.array(z.any()).optional(),
 });
 
@@ -196,8 +206,8 @@ const customTentacleQuestionSchema = baseTentacleQuestionSchema.extend({
 
 export const tentacleQuestionSchema = z.union([
     customTentacleQuestionSchema.describe(NO_GROUP),
-    tentacleQuestionSpecificSchemaFifteen.describe("15 Miles (Typically)"),
-    tentacleQuestionSpecificSchemaOne.describe("1 Mile (Typically)"),
+    tentacleQuestionSpecificSchemaOne.describe("1.6 km (small game)"),
+    tentacleQuestionSpecificSchemaFifteen.describe("24 km (large game)"),
 ]);
 
 const baseMatchingQuestionSchema = ordinaryBaseQuestionSchema.extend({
@@ -208,22 +218,12 @@ const baseMatchingQuestionSchema = ordinaryBaseQuestionSchema.extend({
 const ordinaryMatchingQuestionSchema = baseMatchingQuestionSchema.extend({
     type: z
         .union([
-            z
-                .literal("airport")
-                .describe("Commercial Airport In Zone Question"),
-            z
-                .literal("major-city")
-                .describe("Major City (1,000,000+ people) In Zone Question"),
-            z
-                .literal("aquarium-full")
-                .describe("Aquarium Question (Small+Medium Games)"),
+            // Tallinn: no million-cities, aquariums, mountains or golf courses in the play area
+            z.literal("airport").describe("Airport / Airfield Question"),
             z.literal("zoo-full").describe("Zoo Question (Small+Medium Games)"),
             z
                 .literal("theme_park-full")
                 .describe("Theme Park Question (Small+Medium Games)"),
-            z
-                .literal("peak-full")
-                .describe("Mountain Question (Small+Medium Games)"),
             z
                 .literal("museum-full")
                 .describe("Museum Question (Small+Medium Games)"),
@@ -237,11 +237,10 @@ const ordinaryMatchingQuestionSchema = baseMatchingQuestionSchema.extend({
                 .literal("library-full")
                 .describe("Library Question (Small+Medium Games)"),
             z
-                .literal("golf_course-full")
-                .describe("Golf Course Question (Small+Medium Games)"),
-            z
                 .literal("consulate-full")
-                .describe("Foreign Consulate Question (Small+Medium Games)"),
+                .describe(
+                    "Foreign Embassy / Consulate Question (Small+Medium Games)",
+                ),
             z
                 .literal("park-full")
                 .describe("Park Question (Small+Medium Games)"),
@@ -270,15 +269,13 @@ const zoneMatchingQuestionsSchema = baseMatchingQuestionSchema.extend({
                 z.literal(10),
             ]),
         })
-        .default(() => ({ adminLevel: 3 }) as { adminLevel: 3 }),
+        .default(() => ({ adminLevel: 9 }) as { adminLevel: 9 }),
 });
 
 const homeGameMatchingQuestionsSchema = baseMatchingQuestionSchema.extend({
     type: z.union([
-        z.literal("aquarium").describe("Aquarium Question"),
         z.literal("zoo").describe("Zoo Question"),
         z.literal("theme_park").describe("Theme Park Question"),
-        z.literal("peak").describe("Mountain Question"),
         z.literal("museum").describe("Museum Question"),
         z.literal("hospital").describe("Hospital Question"),
         z.literal("cinema").describe("Cinema Question"),
@@ -297,9 +294,7 @@ const hidingZoneMatchingQuestionsSchema = baseMatchingQuestionSchema.extend({
         z
             .literal("same-length-station")
             .describe("Station Has Same Length Question"),
-        z
-            .literal("same-train-line")
-            .describe("Station On Same Train Line Question"),
+        z.literal("same-train-line").describe("Station On Same Line Question"),
     ]),
 });
 
@@ -452,7 +447,13 @@ export const questionSchema = z.union([
     }),
 ]);
 
-export const questionsSchema = z.array(questionSchema);
+// Invalid questions (e.g. removed categories like aquarium tentacles) are dropped instead of failing the whole list
+export const questionsSchema = z.array(z.any()).transform((questions) =>
+    questions.flatMap((question) => {
+        const result = questionSchema.safeParse(question);
+        return result.success ? [result.data] : [];
+    }),
+);
 
 export type Units = z.infer<typeof unitsSchema>;
 export type RadiusQuestion = z.infer<typeof radiusQuestionSchema>;

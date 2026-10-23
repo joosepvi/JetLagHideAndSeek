@@ -34,10 +34,14 @@ import { applyQuestionsToMapGeoData, holedMask } from "@/maps";
 import { hiderifyQuestion } from "@/maps";
 import { clearCache, determineMapBoundaries } from "@/maps/api";
 
+import { CoastlineOverlay } from "./CoastlineOverlay";
 import { DraggableMarkers } from "./DraggableMarkers";
 import { LeafletFullScreenButton } from "./LeafletFullScreenButton";
-import { MapPrint } from "./MapPrint";
 import { PolygonDraw } from "./PolygonDraw";
+import {
+    MatchingPlaceMarkers,
+    TentaclePlaceMarkers,
+} from "./TentaclePlaceMarkers";
 
 const getTileLayer = (tileLayer: string, thunderforestApiKey: string) => {
     switch (tileLayer) {
@@ -245,6 +249,8 @@ export const Map = ({ className }: { className?: string }) => {
             <MapContainer
                 center={$mapGeoLocation.geometry.coordinates}
                 zoom={5}
+                // No +/- buttons: zoom with scroll or pinch
+                zoomControl={false}
                 className={cn("w-[500px] h-[500px]", className)}
                 ref={leafletMapContext.set}
                 // @ts-expect-error Typing doesn't update from react-contextmenu
@@ -369,6 +375,9 @@ export const Map = ({ className }: { className?: string }) => {
                 ]}
             >
                 {getTileLayer($baseTileLayer, $thunderforestApiKey)}
+                <TentaclePlaceMarkers />
+                <MatchingPlaceMarkers />
+                <CoastlineOverlay />
                 <DraggableMarkers />
                 <div className="leaflet-top leaflet-right">
                     <div className="leaflet-control flex-col flex gap-2">
@@ -377,18 +386,6 @@ export const Map = ({ className }: { className?: string }) => {
                 </div>
                 <PolygonDraw />
                 <ScaleControl position="bottomleft" />
-                <MapPrint
-                    position="topright"
-                    sizeModes={["Current", "A4Portrait", "A4Landscape"]}
-                    hideControlContainer={false}
-                    hideClasses={[
-                        "leaflet-full-screen-specific-name",
-                        "leaflet-top",
-                        "leaflet-control-easyPrint",
-                        "leaflet-draw",
-                    ]}
-                    title="Print"
-                />
             </MapContainer>
         ),
         [map, $baseTileLayer, $thunderforestApiKey],

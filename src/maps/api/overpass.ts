@@ -21,6 +21,7 @@ import type {
     QuestionSpecificLocation,
 } from "./types";
 import tallinnBoundary from "./tallinn.json";
+import tallinnPlaces from "./tallinn-places.json";
 import { CacheType } from "./types";
 
 type TentacleLocationQuery = Pick<
@@ -111,7 +112,33 @@ export const determineGeoJSON = async (
 export const findTentacleLocations = async (
     question: TentacleLocationQuery,
     text: string = "Determining tentacle locations...",
+    liveIfEmpty: boolean = false,
 ) => {
+    const hardcoded = (
+        tallinnPlaces as Record<
+            string,
+            { name: string; lat: number; lng: number }[] | undefined
+        >
+    )[question.locationType];
+    // Tentacles never go online; "nearest" searches fall back to Overpass for empty categories (aquariums)
+    if (hardcoded && (hardcoded.length > 0 || !liveIfEmpty)) {
+        const center = turf.point([question.lng, question.lat]);
+        return turf.featureCollection(
+            hardcoded
+                .filter(
+                    (p) =>
+                        turf.distance(center, turf.point([p.lng, p.lat]), {
+                            units: question.unit,
+                        }) <= question.radius,
+                )
+                .map((p) =>
+                    turf.point([p.lng, p.lat], {
+                        name: p.name,
+                    } as Record<string, any>),
+                ),
+        );
+    }
+
     const query = `
 [out:json][timeout:25];
 nwr["${LOCATION_FIRST_TAG[question.locationType]}"="${question.locationType}"](around:${turf.convertLength(
@@ -379,7 +406,7 @@ export const nearestToQuestion = async (
 ) => {
     let radius = 30;
     let instances: any = { features: [] };
-    while (instances.features.length === 0) {
+    while (instances.features.length === 0 && radius <= 600) {
         instances = await findTentacleLocations(
             {
                 lat: question.lat,
@@ -389,6 +416,7 @@ export const nearestToQuestion = async (
                 locationType: question.type,
             },
             "Finding matching locations...",
+            true,
         );
         radius += 30;
     }

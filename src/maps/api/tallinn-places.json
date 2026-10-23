@@ -1,0 +1,2022 @@
+{
+ "theme_park": [
+  {
+   "name": "Luna Luna (Kadrioru Karussell)",
+   "lat": 59.436981,
+   "lng": 24.787704
+  }
+ ],
+ "zoo": [
+  {
+   "name": "Papagoide Paradiis",
+   "lat": 59.436147,
+   "lng": 24.749677
+  },
+  {
+   "name": "Roosioksa Hobitalu",
+   "lat": 59.361895,
+   "lng": 25.068376
+  },
+  {
+   "name": "Tallinn Zoo",
+   "lat": 59.420534,
+   "lng": 24.660377
+  }
+ ],
+ "aquarium": [],
+ "museum": [
+  {
+   "name": "#patarei",
+   "lat": 59.449588,
+   "lng": 24.743151
+  },
+  {
+   "name": "A. H. Tammsaare Museum in Tallinn",
+   "lat": 59.437787,
+   "lng": 24.778572
+  },
+  {
+   "name": "Adamson Eric Museum",
+   "lat": 59.436302,
+   "lng": 24.741754
+  },
+  {
+   "name": "Applied Art and Design Museum",
+   "lat": 59.43971,
+   "lng": 24.745163
+  },
+  {
+   "name": "Archival Museum Of Estonian Pedagogy",
+   "lat": 59.439081,
+   "lng": 24.772092
+  },
+  {
+   "name": "Arvutimuuseum",
+   "lat": 59.420228,
+   "lng": 24.677191
+  },
+  {
+   "name": "Banned Books Museum",
+   "lat": 59.438293,
+   "lng": 24.748553
+  },
+  {
+   "name": "Beer Museum Saku Brewery",
+   "lat": 59.300066,
+   "lng": 24.667904
+  },
+  {
+   "name": "Carved Stone Museum",
+   "lat": 59.434112,
+   "lng": 24.743448
+  },
+  {
+   "name": "Children's Museum Miiamilla",
+   "lat": 59.436673,
+   "lng": 24.78947
+  },
+  {
+   "name": "Contemporary Art Museum of Estonia (EKKM)",
+   "lat": 59.445118,
+   "lng": 24.751333
+  },
+  {
+   "name": "Dominican Monastery Museum",
+   "lat": 59.437925,
+   "lng": 24.749289
+  },
+  {
+   "name": "Eduard Vilde Museum",
+   "lat": 59.436535,
+   "lng": 24.785339
+  },
+  {
+   "name": "Eesti Pank Museum",
+   "lat": 59.433402,
+   "lng": 24.749801
+  },
+  {
+   "name": "Energy Discovery Centre",
+   "lat": 59.444124,
+   "lng": 24.749653
+  },
+  {
+   "name": "Estonian Firefighting Museum",
+   "lat": 59.43531,
+   "lng": 24.7641
+  },
+  {
+   "name": "Estonian Healthcare Museum",
+   "lat": 59.439495,
+   "lng": 24.745461
+  },
+  {
+   "name": "Estonian History Museum",
+   "lat": 59.438368,
+   "lng": 24.745165
+  },
+  {
+   "name": "Estonian Jewish Museum",
+   "lat": 59.438712,
+   "lng": 24.766092
+  },
+  {
+   "name": "Estonian Liberation Movement Museum at Lagedi",
+   "lat": 59.388992,
+   "lng": 24.940782
+  },
+  {
+   "name": "Estonian Maritime Museum",
+   "lat": 59.442442,
+   "lng": 24.749402
+  },
+  {
+   "name": "Estonian Museum Of Natural History",
+   "lat": 59.440814,
+   "lng": 24.745229
+  },
+  {
+   "name": "Estonian Open Air Museum",
+   "lat": 59.435935,
+   "lng": 24.636196
+  },
+  {
+   "name": "Estonian Theatre And Music Museum",
+   "lat": 59.434797,
+   "lng": 24.745097
+  },
+  {
+   "name": "Estonian Vintage Technology Museum",
+   "lat": 59.380541,
+   "lng": 24.682909,
+   "source": "ETAK"
+  },
+  {
+   "name": "Estonian War Museum",
+   "lat": 59.501459,
+   "lng": 24.834557
+  },
+  {
+   "name": "Euroopa Elamuskeskus",
+   "lat": 59.434246,
+   "lng": 24.758268
+  },
+  {
+   "name": "Film Museum",
+   "lat": 59.453277,
+   "lng": 24.812173
+  },
+  {
+   "name": "Fotografiska",
+   "lat": 59.438352,
+   "lng": 24.728465
+  },
+  {
+   "name": "Gustav Adolfi gümnaasiumi ajaloomuuseum",
+   "lat": 59.438795,
+   "lng": 24.74269
+  },
+  {
+   "name": "Harju County Museum",
+   "lat": 59.303974,
+   "lng": 24.439657
+  },
+  {
+   "name": "Horse Mill",
+   "lat": 59.442053,
+   "lng": 24.747324
+  },
+  {
+   "name": "Ikoonimuuseum",
+   "lat": 59.437224,
+   "lng": 24.7482
+  },
+  {
+   "name": "Insurance Museum",
+   "lat": 59.433371,
+   "lng": 24.764211
+  },
+  {
+   "name": "Jaan Poska Museum",
+   "lat": 59.434421,
+   "lng": 24.779638,
+   "source": "ETAK"
+  },
+  {
+   "name": "Kadriorg Art Museum (Kadriorg Palace)",
+   "lat": 59.438596,
+   "lng": 24.791087
+  },
+  {
+   "name": "Kadrioru Pargi muuseum-raamatukogu",
+   "lat": 59.437687,
+   "lng": 24.790054
+  },
+  {
+   "name": "Kalamaja Museum",
+   "lat": 59.442834,
+   "lng": 24.736878
+  },
+  {
+   "name": "Kalev Marzipan Room",
+   "lat": 59.438286,
+   "lng": 24.745624
+  },
+  {
+   "name": "Keila Kooli muuseum",
+   "lat": 59.313432,
+   "lng": 24.411733
+  },
+  {
+   "name": "KGB Museum",
+   "lat": 59.43659,
+   "lng": 24.754684
+  },
+  {
+   "name": "KGB Prison Cells",
+   "lat": 59.440533,
+   "lng": 24.747582
+  },
+  {
+   "name": "Konstantin Päts Museum",
+   "lat": 59.413622,
+   "lng": 24.656464,
+   "source": "ETAK"
+  },
+  {
+   "name": "Kumu Art Museum",
+   "lat": 59.436328,
+   "lng": 24.796286
+  },
+  {
+   "name": "LVLup! Interactive Video Game Exhibition",
+   "lat": 59.4376,
+   "lng": 24.763949
+  },
+  {
+   "name": "Maarjamäe Palace (History Museum)",
+   "lat": 59.45243,
+   "lng": 24.810363,
+   "source": "ETAK"
+  },
+  {
+   "name": "Metsanurme Local Lore Museum",
+   "lat": 59.26765,
+   "lng": 24.663712
+  },
+  {
+   "name": "Mikkel Museum",
+   "lat": 59.437467,
+   "lng": 24.791459
+  },
+  {
+   "name": "Museum of coastal folk",
+   "lat": 59.521181,
+   "lng": 24.808021
+  },
+  {
+   "name": "Museum of Defence League",
+   "lat": 59.43314,
+   "lng": 24.739274
+  },
+  {
+   "name": "Museum of Estonian Architecture",
+   "lat": 59.440358,
+   "lng": 24.756252
+  },
+  {
+   "name": "Museum Of Medieval Torture Instruments",
+   "lat": 59.436753,
+   "lng": 24.747089
+  },
+  {
+   "name": "Museum of Occupations",
+   "lat": 59.4326,
+   "lng": 24.739423
+  },
+  {
+   "name": "Museum of Prangli Islands",
+   "lat": 59.622899,
+   "lng": 25.008942
+  },
+  {
+   "name": "Naissaare Museum",
+   "lat": 59.543351,
+   "lng": 24.547697
+  },
+  {
+   "name": "Neitsitorn Maiden Tower Museum & Cafe",
+   "lat": 59.435229,
+   "lng": 24.740895
+  },
+  {
+   "name": "Nõmme Muuseum",
+   "lat": 59.386251,
+   "lng": 24.686131
+  },
+  {
+   "name": "Peter I House Museum",
+   "lat": 59.437634,
+   "lng": 24.796234
+  },
+  {
+   "name": "Photo Museum",
+   "lat": 59.436855,
+   "lng": 24.745421
+  },
+  {
+   "name": "PoCo",
+   "lat": 59.438782,
+   "lng": 24.758223
+  },
+  {
+   "name": "PROTO Invention Factory",
+   "lat": 59.451456,
+   "lng": 24.730549
+  },
+  {
+   "name": "Puppet Theater Museum",
+   "lat": 59.438467,
+   "lng": 24.743031
+  },
+  {
+   "name": "Rebala heritage reserve museum",
+   "lat": 59.440235,
+   "lng": 25.134066
+  },
+  {
+   "name": "RMK Viimsi Nature Centre",
+   "lat": 59.514786,
+   "lng": 24.816884
+  },
+  {
+   "name": "Rootsi-Kallavere Village Museum",
+   "lat": 59.489531,
+   "lng": 25.028792
+  },
+  {
+   "name": "Seaplane Harbour",
+   "lat": 59.451737,
+   "lng": 24.738441
+  },
+  {
+   "name": "St. Nicholas Church",
+   "lat": 59.435902,
+   "lng": 24.742792
+  },
+  {
+   "name": "Särevi Theatre Room",
+   "lat": 59.435996,
+   "lng": 24.769925,
+   "source": "ETAK"
+  },
+  {
+   "name": "Tallinn City Museum",
+   "lat": 59.438689,
+   "lng": 24.74815
+  },
+  {
+   "name": "Tallinn Museum of Orders of Knighthood",
+   "lat": 59.436315,
+   "lng": 24.745527
+  },
+  {
+   "name": "Tallinn TV Tower",
+   "lat": 59.471211,
+   "lng": 24.887437,
+   "source": "ETAK"
+  },
+  {
+   "name": "Tallinna rahvaste muuseum",
+   "lat": 59.438949,
+   "lng": 24.746159
+  },
+  {
+   "name": "TalTech Museum",
+   "lat": 59.396774,
+   "lng": 24.670994,
+   "source": "ETAK"
+  },
+  {
+   "name": "The Museum of Mati Unt",
+   "lat": 59.437652,
+   "lng": 24.783817
+  },
+  {
+   "name": "Town Hall Pharmacy",
+   "lat": 59.437731,
+   "lng": 24.745936
+  },
+  {
+   "name": "Under and Tuglas Literature Centre Museum",
+   "lat": 59.387453,
+   "lng": 24.714803,
+   "source": "ETAK"
+  },
+  {
+   "name": "Viimsi Open Air Museum",
+   "lat": 59.524286,
+   "lng": 24.798136
+  },
+  {
+   "name": "VR Tallinn 1939/44",
+   "lat": 59.433025,
+   "lng": 24.74331
+  }
+ ],
+ "hospital": [
+  {
+   "name": "East-Tallinn Central Hospital",
+   "lat": 59.426931,
+   "lng": 24.756144
+  },
+  {
+   "name": "Elora Hiiu Haigla",
+   "lat": 59.379589,
+   "lng": 24.664203
+  },
+  {
+   "name": "Fertilitas kesklinna polikliinik",
+   "lat": 59.431062,
+   "lng": 24.752603,
+   "source": "ETAK"
+  },
+  {
+   "name": "Ida-Tallinna Keskhaigla Järve üksus",
+   "lat": 59.39573,
+   "lng": 24.714071
+  },
+  {
+   "name": "Ida-Tallinna Keskhaigla Tõnismäe polikliinik",
+   "lat": 59.430712,
+   "lng": 24.741244,
+   "source": "ETAK"
+  },
+  {
+   "name": "Kallavere Haigla",
+   "lat": 59.476071,
+   "lng": 25.020211
+  },
+  {
+   "name": "Kesklinna Lastepolikliinik",
+   "lat": 59.428515,
+   "lng": 24.756044
+  },
+  {
+   "name": "Lasnamäe Medicum",
+   "lat": 59.437065,
+   "lng": 24.847118,
+   "source": "ETAK"
+  },
+  {
+   "name": "LTK nakkuskliinik",
+   "lat": 59.43038,
+   "lng": 24.694496
+  },
+  {
+   "name": "Lääne Tallinna Keskhaigla Nõmme tervisekeskus",
+   "lat": 59.38664,
+   "lng": 24.685914,
+   "source": "ETAK"
+  },
+  {
+   "name": "Lääne-Tallinna Keskhaigla",
+   "lat": 59.431207,
+   "lng": 24.693344
+  },
+  {
+   "name": "Lääne-Tallinna Keskhaigla Haabersti tervisekeskus",
+   "lat": 59.419386,
+   "lng": 24.650359,
+   "source": "ETAK"
+  },
+  {
+   "name": "Lääne-Tallinna Keskhaigla Meremeeste polikliinik",
+   "lat": 59.430338,
+   "lng": 24.690953,
+   "source": "ETAK"
+  },
+  {
+   "name": "Lääne-Tallinna Keskhaigla Mustamäe tervisekeskus",
+   "lat": 59.400206,
+   "lng": 24.668944,
+   "source": "ETAK"
+  },
+  {
+   "name": "Magdaleena haigla",
+   "lat": 59.416846,
+   "lng": 24.738294
+  },
+  {
+   "name": "North Estonia Medical Centre",
+   "lat": 59.398492,
+   "lng": 24.701393
+  },
+  {
+   "name": "Pelgulinna Haigla",
+   "lat": 59.436124,
+   "lng": 24.71403
+  },
+  {
+   "name": "Pelgulinna Sünnitusmaja",
+   "lat": 59.435949,
+   "lng": 24.709067
+  },
+  {
+   "name": "Põhja-Eesti Regionaalhaigla DialüüsiFoorum",
+   "lat": 59.43769,
+   "lng": 24.758324,
+   "source": "ETAK"
+  },
+  {
+   "name": "Põhja-Eesti Regionaalhaigla psühhiaatriakliinik",
+   "lat": 59.432559,
+   "lng": 24.698389
+  },
+  {
+   "name": "Põhja-Eesti Regionaalhaigla Seewaldi korpus",
+   "lat": 59.429716,
+   "lng": 24.70229,
+   "source": "ETAK"
+  },
+  {
+   "name": "Põhja-Eesti Regionaalhaigla Silmakirurgia keskus",
+   "lat": 59.427387,
+   "lng": 24.783753,
+   "source": "ETAK"
+  },
+  {
+   "name": "Põhja-Eesti Regionaalhaigla Ülemiste Doonorikeskus",
+   "lat": 59.420739,
+   "lng": 24.80654,
+   "source": "ETAK"
+  },
+  {
+   "name": "Sadama Medicum",
+   "lat": 59.442647,
+   "lng": 24.768134,
+   "source": "ETAK"
+  },
+  {
+   "name": "Tallinn Children's Hospital",
+   "lat": 59.397111,
+   "lng": 24.702864
+  },
+  {
+   "name": "Tallinna Diakooniahaigla",
+   "lat": 59.372661,
+   "lng": 24.679669
+  },
+  {
+   "name": "Wismari Haigla",
+   "lat": 59.432096,
+   "lng": 24.73227
+  }
+ ],
+ "cinema": [
+  {
+   "name": "Apollo Kino Keila",
+   "lat": 59.316146,
+   "lng": 24.409996
+  },
+  {
+   "name": "Apollo Kino Kristiine",
+   "lat": 59.426896,
+   "lng": 24.724406,
+   "source": "ETAK"
+  },
+  {
+   "name": "Apollo Kino Mustamäe",
+   "lat": 59.408579,
+   "lng": 24.688792,
+   "source": "ETAK"
+  },
+  {
+   "name": "Apollo Kino Plaza",
+   "lat": 59.438318,
+   "lng": 24.756502
+  },
+  {
+   "name": "Apollo Kino Solaris",
+   "lat": 59.433591,
+   "lng": 24.751487
+  },
+  {
+   "name": "Apollo Kino Ülemiste",
+   "lat": 59.42183,
+   "lng": 24.79563
+  },
+  {
+   "name": "Aruküla Kino",
+   "lat": 59.365708,
+   "lng": 25.080555
+  },
+  {
+   "name": "Cinamon Kosmos",
+   "lat": 59.428217,
+   "lng": 24.743633
+  },
+  {
+   "name": "Drive-In Kino",
+   "lat": 59.440393,
+   "lng": 24.864302,
+   "source": "ETAK"
+  },
+  {
+   "name": "Erinevate Tubade Klubi",
+   "lat": 59.439405,
+   "lng": 24.728215,
+   "source": "ETAK"
+  },
+  {
+   "name": "Katusekino",
+   "lat": 59.4362,
+   "lng": 24.756484,
+   "source": "ETAK"
+  },
+  {
+   "name": "Keri Kino",
+   "lat": 59.69863,
+   "lng": 25.023345
+  },
+  {
+   "name": "Kino Artis",
+   "lat": 59.433133,
+   "lng": 24.752032
+  },
+  {
+   "name": "Kino Lindakivi Kultuurikeskus",
+   "lat": 59.440734,
+   "lng": 24.831546,
+   "source": "ETAK"
+  },
+  {
+   "name": "Kino Sõprus",
+   "lat": 59.435304,
+   "lng": 24.745229
+  },
+  {
+   "name": "Kino Sõpruse Kai saal",
+   "lat": 59.452321,
+   "lng": 24.730614
+  },
+  {
+   "name": "Kinomaja",
+   "lat": 59.437606,
+   "lng": 24.749929
+  },
+  {
+   "name": "Kumu auditoorium / Kumu Dokumentaal",
+   "lat": 59.436191,
+   "lng": 24.796432,
+   "source": "ETAK"
+  },
+  {
+   "name": "Viimsi Kino",
+   "lat": 59.507926,
+   "lng": 24.830407
+  }
+ ],
+ "library": [
+  {
+   "name": "Aruküla Raamatukogu",
+   "lat": 59.368172,
+   "lng": 25.07598
+  },
+  {
+   "name": "EELK Usuteaduste Instituudi raamatukogu",
+   "lat": 59.438322,
+   "lng": 24.746638,
+   "source": "ETAK"
+  },
+  {
+   "name": "Eesti Ajaloomuuseumi raamatukogu",
+   "lat": 59.453984,
+   "lng": 24.812093,
+   "source": "ETAK"
+  },
+  {
+   "name": "Eesti Ettevõtluskõrgkool Mainor - Tallinna õppekeskuse raamatukogu",
+   "lat": 59.422657,
+   "lng": 24.800078,
+   "source": "ETAK"
+  },
+  {
+   "name": "Eesti Kunstiakadeemia Raamatukogu",
+   "lat": 59.442405,
+   "lng": 24.74111,
+   "source": "ETAK"
+  },
+  {
+   "name": "Eesti Kunstimuuseumi raamatukogu",
+   "lat": 59.436206,
+   "lng": 24.796379,
+   "source": "ETAK"
+  },
+  {
+   "name": "Eesti Meremuuseumi raamatukogu",
+   "lat": 59.444935,
+   "lng": 24.721548,
+   "source": "ETAK"
+  },
+  {
+   "name": "Eesti Muusika- ja Teatriakadeemia lavakunsti osakonna raamatukogu",
+   "lat": 59.436511,
+   "lng": 24.738808,
+   "source": "ETAK"
+  },
+  {
+   "name": "Eesti Muusika- ja Teatriakadeemia Raamatukogu",
+   "lat": 59.431296,
+   "lng": 24.748254,
+   "source": "ETAK"
+  },
+  {
+   "name": "Eesti Pimedate Raamatukogu / Eesti Hoiuraamatukogu",
+   "lat": 59.417457,
+   "lng": 24.833043,
+   "source": "ETAK"
+  },
+  {
+   "name": "Eesti Teatriliidu raamatukogu",
+   "lat": 59.43798,
+   "lng": 24.749868,
+   "source": "ETAK"
+  },
+  {
+   "name": "Emakeele Seltsi raamatukogu",
+   "lat": 59.431615,
+   "lng": 24.743103,
+   "source": "ETAK"
+  },
+  {
+   "name": "Estonian Business School (EBS) raamatukogu",
+   "lat": 59.432121,
+   "lng": 24.756654,
+   "source": "ETAK"
+  },
+  {
+   "name": "Estonian Children's Literature Centre",
+   "lat": 59.442343,
+   "lng": 24.748898
+  },
+  {
+   "name": "Estonian National Library",
+   "lat": 59.430357,
+   "lng": 24.73861
+  },
+  {
+   "name": "Fenno-Ugria Asutuse raamatukogu",
+   "lat": 59.430895,
+   "lng": 24.745022,
+   "source": "ETAK"
+  },
+  {
+   "name": "Harju Maakonnaraamatukogu",
+   "lat": 59.313392,
+   "lng": 24.412487
+  },
+  {
+   "name": "Kaasaegse Kunsti Eesti Keskuse raamatukogu",
+   "lat": 59.434338,
+   "lng": 24.745238,
+   "source": "ETAK"
+  },
+  {
+   "name": "Kadrioru Pargi muuseum-raamatukogu",
+   "lat": 59.437687,
+   "lng": 24.790056,
+   "source": "ETAK"
+  },
+  {
+   "name": "Kadrioru raamatukogu",
+   "lat": 59.437765,
+   "lng": 24.778778
+  },
+  {
+   "name": "Kaitseväe raamatukogu",
+   "lat": 59.424636,
+   "lng": 24.772227,
+   "source": "ETAK"
+  },
+  {
+   "name": "Kalamaja raamatukogu",
+   "lat": 59.442364,
+   "lng": 24.736689
+  },
+  {
+   "name": "Kännukuke raamatukogu",
+   "lat": 59.404837,
+   "lng": 24.688353
+  },
+  {
+   "name": "Laagna raamatukogu",
+   "lat": 59.442225,
+   "lng": 24.831153
+  },
+  {
+   "name": "Laagri raamatukogu",
+   "lat": 59.351944,
+   "lng": 24.609041
+  },
+  {
+   "name": "Lagedi Raamatukogu",
+   "lat": 59.402233,
+   "lng": 24.941676
+  },
+  {
+   "name": "Liszti Instituut Tallinn, Ungari Kultuuri Keskuse raamatukogu",
+   "lat": 59.436476,
+   "lng": 24.739794,
+   "source": "ETAK"
+  },
+  {
+   "name": "Maardu Linna Raamatukogu",
+   "lat": 59.479878,
+   "lng": 25.013707
+  },
+  {
+   "name": "Männi raamatukogu",
+   "lat": 59.401374,
+   "lng": 24.67182
+  },
+  {
+   "name": "Männiku raamatukogu",
+   "lat": 59.374463,
+   "lng": 24.712965
+  },
+  {
+   "name": "Nurmenuku raamatukogu",
+   "lat": 59.413099,
+   "lng": 24.657139
+  },
+  {
+   "name": "Nõmme raamatukogu",
+   "lat": 59.385716,
+   "lng": 24.680592
+  },
+  {
+   "name": "Paepealse raamatukogu",
+   "lat": 59.436512,
+   "lng": 24.836866
+  },
+  {
+   "name": "Pelguranna Raamatukogu",
+   "lat": 59.452137,
+   "lng": 24.687925
+  },
+  {
+   "name": "Pirita raamatukogu",
+   "lat": 59.469951,
+   "lng": 24.841427
+  },
+  {
+   "name": "Polytechnic School library",
+   "lat": 59.427082,
+   "lng": 24.744096
+  },
+  {
+   "name": "Prantsuse Instituut",
+   "lat": 59.436576,
+   "lng": 24.745373
+  },
+  {
+   "name": "Pääsküla raamatukogu",
+   "lat": 59.369791,
+   "lng": 24.638169
+  },
+  {
+   "name": "Rahvusarhiivi Tallinna raamatukogu",
+   "lat": 59.42958,
+   "lng": 24.721969,
+   "source": "ETAK"
+  },
+  {
+   "name": "RaRa Solaris",
+   "lat": 59.433342,
+   "lng": 24.751234
+  },
+  {
+   "name": "Saku vallaraamatukogu",
+   "lat": 59.299944,
+   "lng": 24.65938
+  },
+  {
+   "name": "Saue Linna Raamatukogu",
+   "lat": 59.319885,
+   "lng": 24.559443
+  },
+  {
+   "name": "Saue Raamatukogu",
+   "lat": 59.31866,
+   "lng": 24.567079
+  },
+  {
+   "name": "Sisekaitseakadeemia raamatukogu",
+   "lat": 59.456021,
+   "lng": 24.840709,
+   "source": "ETAK"
+  },
+  {
+   "name": "Sõle Raamatukogu",
+   "lat": 59.443469,
+   "lng": 24.70129
+  },
+  {
+   "name": "Sääse raamatukogu",
+   "lat": 59.410119,
+   "lng": 24.703985
+  },
+  {
+   "name": "Tabasalu raamatukogu",
+   "lat": 59.428212,
+   "lng": 24.545599
+  },
+  {
+   "name": "Tallinn Central Library",
+   "lat": 59.433144,
+   "lng": 24.747585
+  },
+  {
+   "name": "Tallinna Botaanikaaia raamatukogu",
+   "lat": 59.469553,
+   "lng": 24.87801,
+   "source": "ETAK"
+  },
+  {
+   "name": "Tallinna Keskraamatukogu võõrkeelse kirjanduse osakond",
+   "lat": 59.430168,
+   "lng": 24.760757
+  },
+  {
+   "name": "Tallinna Kirjanike Maja",
+   "lat": 59.436314,
+   "lng": 24.744951
+  },
+  {
+   "name": "Tallinna Linnamuuseumi raamatukogu",
+   "lat": 59.43869,
+   "lng": 24.748164,
+   "source": "ETAK"
+  },
+  {
+   "name": "Tallinna Loomaaia raamatukogu",
+   "lat": 59.417756,
+   "lng": 24.657552,
+   "source": "ETAK"
+  },
+  {
+   "name": "Tallinna Tervishoiu Kõrgkooli raamatukogu",
+   "lat": 59.408883,
+   "lng": 24.709362,
+   "source": "ETAK"
+  },
+  {
+   "name": "Tallinna Ülikooli Akadeemiline Raamatukogu",
+   "lat": 59.433579,
+   "lng": 24.753386
+  },
+  {
+   "name": "Tallinna Ülikooli Akadeemilise Raamatukogu õpikeskus",
+   "lat": 59.45492,
+   "lng": 24.872065,
+   "source": "ETAK"
+  },
+  {
+   "name": "TalTech Library",
+   "lat": 59.396771,
+   "lng": 24.670993
+  },
+  {
+   "name": "TalTechi Eesti Mereakadeemia (EMERA) raamatukogu",
+   "lat": 59.461579,
+   "lng": 24.666246,
+   "source": "ETAK"
+  },
+  {
+   "name": "TalTechi Tarkvarateaduste Insituudi raamatukogu",
+   "lat": 59.396943,
+   "lng": 24.662604,
+   "source": "ETAK"
+  },
+  {
+   "name": "Tondi raamatukogu",
+   "lat": 59.41344,
+   "lng": 24.73943,
+   "source": "ETAK"
+  },
+  {
+   "name": "Torupilli raamatukogu",
+   "lat": 59.433167,
+   "lng": 24.776019
+  },
+  {
+   "name": "TÜ Eesti Mereinstituudi raamatukogu",
+   "lat": 59.398586,
+   "lng": 24.648097,
+   "source": "ETAK"
+  },
+  {
+   "name": "TÜ Õigusteaduskonna teabekeskus Tallinnas",
+   "lat": 59.432234,
+   "lng": 24.742243,
+   "source": "ETAK"
+  },
+  {
+   "name": "Väike-Õismäe raamatukogu",
+   "lat": 59.412775,
+   "lng": 24.638837
+  }
+ ],
+ "consulate": [
+  {
+   "name": "Albaania Vabariigi Aukonsulaat",
+   "lat": 59.431821,
+   "lng": 24.746819
+  },
+  {
+   "name": "Ameerika Ühendriikide Suursaatkond",
+   "lat": 59.430478,
+   "lng": 24.751652
+  },
+  {
+   "name": "Aserbaidžaani Suursaatkond Tallinnas",
+   "lat": 59.446815,
+   "lng": 24.802818
+  },
+  {
+   "name": "Austria Aukonsulaat",
+   "lat": 59.484603,
+   "lng": 24.854851
+  },
+  {
+   "name": "Austria Suursaatkond",
+   "lat": 59.431046,
+   "lng": 24.756122
+  },
+  {
+   "name": "Belgia Kuningriigi Aukonsulaat",
+   "lat": 59.432421,
+   "lng": 24.748576
+  },
+  {
+   "name": "Brasiilia Liitvabariigi Suursaatkond",
+   "lat": 59.431458,
+   "lng": 24.757713
+  },
+  {
+   "name": "Briti Suursaatkond",
+   "lat": 59.432678,
+   "lng": 24.731595
+  },
+  {
+   "name": "Bulgaaria Vabariigi Aukonsulaat",
+   "lat": 59.448127,
+   "lng": 24.72993
+  },
+  {
+   "name": "Fidži Vabariigi Aukonsulaat",
+   "lat": 59.396663,
+   "lng": 24.669916
+  },
+  {
+   "name": "Filipiinide Aukonsulaat",
+   "lat": 59.438182,
+   "lng": 24.750606
+  },
+  {
+   "name": "Gruusia Suursaatkond",
+   "lat": 59.4375,
+   "lng": 24.754009
+  },
+  {
+   "name": "Guatemala aukonsul Eestis",
+   "lat": 59.439557,
+   "lng": 24.756505
+  },
+  {
+   "name": "Hiina Rahvavabariigi Suursaatkond",
+   "lat": 59.442729,
+   "lng": 24.797045
+  },
+  {
+   "name": "Hispaania Kuningriigi Suursaatkond",
+   "lat": 59.428536,
+   "lng": 24.749813
+  },
+  {
+   "name": "Hollandi Kuninglik Suursaatkond Tallinnas",
+   "lat": 59.432809,
+   "lng": 24.759157
+  },
+  {
+   "name": "Horvaatia Vabariigi Aukonsulaat",
+   "lat": 59.438472,
+   "lng": 24.744266
+  },
+  {
+   "name": "Iiri Suursaatkond",
+   "lat": 59.433612,
+   "lng": 24.756922
+  },
+  {
+   "name": "Iisraeli Aukonsulaat",
+   "lat": 59.433304,
+   "lng": 24.760005
+  },
+  {
+   "name": "India Vabariigi Suursaatkond",
+   "lat": 59.432879,
+   "lng": 24.761115
+  },
+  {
+   "name": "Indoneesia Vabariigi Aukonsulaat",
+   "lat": 59.428689,
+   "lng": 24.746472
+  },
+  {
+   "name": "Itaalia Suursaatkond",
+   "lat": 59.43705,
+   "lng": 24.747005
+  },
+  {
+   "name": "Jaapani Suursaatkond Tallinnas",
+   "lat": 59.434518,
+   "lng": 24.74293
+  },
+  {
+   "name": "Kanada Suursaatkonna esindus Eestis",
+   "lat": 59.43674,
+   "lng": 24.737339
+  },
+  {
+   "name": "Kasahstani Vabariigi Suursaatkond",
+   "lat": 59.433612,
+   "lng": 24.756922
+  },
+  {
+   "name": "Kreeka Suursaatkond Tallinnas",
+   "lat": 59.434518,
+   "lng": 24.74293
+  },
+  {
+   "name": "Kuninglik Taani Suursaatkond",
+   "lat": 59.432941,
+   "lng": 24.737851
+  },
+  {
+   "name": "Küprose Vabariigi Aukonsulaat",
+   "lat": 59.427091,
+   "lng": 24.655841
+  },
+  {
+   "name": "Leedu Vabariigi Suursaatkond",
+   "lat": 59.439065,
+   "lng": 24.749723
+  },
+  {
+   "name": "Luksemburgi Suurhertsogiriigi Aukonsulaat",
+   "lat": 59.438146,
+   "lng": 24.744172
+  },
+  {
+   "name": "Lõuna-Aafrika Vabariigi Aukonsulaat",
+   "lat": 59.437415,
+   "lng": 24.75504
+  },
+  {
+   "name": "Läti Vabariigi Suursaatkond",
+   "lat": 59.42996,
+   "lng": 24.740893
+  },
+  {
+   "name": "Malaisia Aukonsulaat",
+   "lat": 59.367274,
+   "lng": 24.643862
+  },
+  {
+   "name": "Malta ordu suursaatkond",
+   "lat": 59.433299,
+   "lng": 24.759944
+  },
+  {
+   "name": "Maroko Kuningriigi Aukonsulaat",
+   "lat": 59.427482,
+   "lng": 24.782859
+  },
+  {
+   "name": "Mehhiko Aukonsulaat",
+   "lat": 59.437444,
+   "lng": 24.741337
+  },
+  {
+   "name": "Moldova Suursaatkond Tallinnas",
+   "lat": 59.437517,
+   "lng": 24.759662
+  },
+  {
+   "name": "Mongoolia Aukonsulaat",
+   "lat": 59.438146,
+   "lng": 24.744172
+  },
+  {
+   "name": "Norra Suursaatkond Tallinnas",
+   "lat": 59.434518,
+   "lng": 24.74293
+  },
+  {
+   "name": "Pakistani Islamivabariigi Aukonsulaat",
+   "lat": 59.426882,
+   "lng": 24.762709
+  },
+  {
+   "name": "Poola Vabariigi Suursaatkond",
+   "lat": 59.43649,
+   "lng": 24.746498
+  },
+  {
+   "name": "Prantsuse Suursaatkond",
+   "lat": 59.428342,
+   "lng": 24.735693
+  },
+  {
+   "name": "Põhja-Makedoonia Suursaatkond Tallinnas",
+   "lat": 59.434518,
+   "lng": 24.74293
+  },
+  {
+   "name": "Rootsi Suursaatkond",
+   "lat": 59.438985,
+   "lng": 24.746936
+  },
+  {
+   "name": "Rumeenia Suursaatkond",
+   "lat": 59.433612,
+   "lng": 24.756922
+  },
+  {
+   "name": "Saksamaa Liitvabariigi Suursaatkond",
+   "lat": 59.428956,
+   "lng": 24.737471
+  },
+  {
+   "name": "Slovakkia Vabariigi Aukonsulaat",
+   "lat": 59.43406,
+   "lng": 24.75252
+  },
+  {
+   "name": "Soome Vabariigi Suursaatkond",
+   "lat": 59.436405,
+   "lng": 24.740726
+  },
+  {
+   "name": "Šveitsi Aukonsulaat",
+   "lat": 59.436234,
+   "lng": 24.776839
+  },
+  {
+   "name": "Tšehhi Vabariigi Suursaatkond",
+   "lat": 59.439274,
+   "lng": 24.784018
+  },
+  {
+   "name": "Tšiili Vabariigi Aukonsulaat",
+   "lat": 59.429677,
+   "lng": 24.748005
+  },
+  {
+   "name": "Türgi Vabariigi Suursaatkond",
+   "lat": 59.43778,
+   "lng": 24.77046
+  },
+  {
+   "name": "Ukraina Suursaatkond",
+   "lat": 59.43996,
+   "lng": 24.784273
+  },
+  {
+   "name": "Ungari Suursaatkond",
+   "lat": 59.433304,
+   "lng": 24.760005
+  },
+  {
+   "name": "Uruguay Aukonsulaat",
+   "lat": 59.484446,
+   "lng": 24.842934
+  },
+  {
+   "name": "Valgevene Vabariigi Suursaatkond",
+   "lat": 59.415766,
+   "lng": 24.737979
+  },
+  {
+   "name": "Venemaa Föderatsiooni Suursaatkond",
+   "lat": 59.438476,
+   "lng": 24.745393
+  }
+ ],
+ "golf_course": [
+  {
+   "name": "Estonian Golf & Country Club´i golfiväljakud",
+   "lat": 59.467018,
+   "lng": 25.138456
+  },
+  {
+   "name": "Rae Golf golfiväljak",
+   "lat": 59.308543,
+   "lng": 24.975339
+  }
+ ],
+ "park": [
+  {
+   "name": "Arbu park",
+   "lat": 59.443732,
+   "lng": 24.843544
+  },
+  {
+   "name": "Aruküla mõisa park",
+   "lat": 59.357787,
+   "lng": 25.081515
+  },
+  {
+   "name": "Asunduse park",
+   "lat": 59.432359,
+   "lng": 24.791653
+  },
+  {
+   "name": "Bastioni aed",
+   "lat": 59.436935,
+   "lng": 24.750982
+  },
+  {
+   "name": "Bishop's Garden",
+   "lat": 59.437155,
+   "lng": 24.738006
+  },
+  {
+   "name": "Canute's Garden",
+   "lat": 59.439496,
+   "lng": 24.752627
+  },
+  {
+   "name": "Cederhelmi park",
+   "lat": 59.426551,
+   "lng": 24.710512
+  },
+  {
+   "name": "Charlottentali park",
+   "lat": 59.419922,
+   "lng": 24.693817
+  },
+  {
+   "name": "Commandant's Garden",
+   "lat": 59.435198,
+   "lng": 24.740169
+  },
+  {
+   "name": "Danish King's garden",
+   "lat": 59.435528,
+   "lng": 24.74095
+  },
+  {
+   "name": "Diakonissi park",
+   "lat": 59.417798,
+   "lng": 24.739554
+  },
+  {
+   "name": "Dominiiklaste kloostri hoov",
+   "lat": 59.437882,
+   "lng": 24.748917
+  },
+  {
+   "name": "Fahle aed",
+   "lat": 59.444378,
+   "lng": 24.7993
+  },
+  {
+   "name": "Falgi park",
+   "lat": 59.432928,
+   "lng": 24.732772
+  },
+  {
+   "name": "Georgian Park",
+   "lat": 59.43701,
+   "lng": 24.769269
+  },
+  {
+   "name": "Glehni park",
+   "lat": 59.387321,
+   "lng": 24.653603
+  },
+  {
+   "name": "Glehni rahula",
+   "lat": 59.39238,
+   "lng": 24.657944
+  },
+  {
+   "name": "Governor's Garden",
+   "lat": 59.435079,
+   "lng": 24.737905
+  },
+  {
+   "name": "Green Market",
+   "lat": 59.439465,
+   "lng": 24.747137
+  },
+  {
+   "name": "Harjumägi",
+   "lat": 59.433977,
+   "lng": 24.74109
+  },
+  {
+   "name": "Hiie park",
+   "lat": 59.456487,
+   "lng": 24.853832
+  },
+  {
+   "name": "Hiiu 100 tamme park",
+   "lat": 59.38222,
+   "lng": 24.667602
+  },
+  {
+   "name": "Hiiu lõvi park",
+   "lat": 59.384607,
+   "lng": 24.66906
+  },
+  {
+   "name": "Hiiu park",
+   "lat": 59.376908,
+   "lng": 24.679995
+  },
+  {
+   "name": "Hiiu puiestik",
+   "lat": 59.375925,
+   "lng": 24.675155
+  },
+  {
+   "name": "Hirvepark",
+   "lat": 59.433754,
+   "lng": 24.736555
+  },
+  {
+   "name": "Home Park",
+   "lat": 59.422895,
+   "lng": 24.753792
+  },
+  {
+   "name": "Hõlmikpuuhaljak",
+   "lat": 59.430116,
+   "lng": 24.745241
+  },
+  {
+   "name": "Ilo park",
+   "lat": 59.388119,
+   "lng": 24.717353
+  },
+  {
+   "name": "Islandi väljak",
+   "lat": 59.432959,
+   "lng": 24.753519
+  },
+  {
+   "name": "Jaapani aed",
+   "lat": 59.442141,
+   "lng": 24.79825
+  },
+  {
+   "name": "Jannseni puiestik",
+   "lat": 59.373089,
+   "lng": 24.657729
+  },
+  {
+   "name": "Jõekääru park",
+   "lat": 59.353016,
+   "lng": 24.607123
+  },
+  {
+   "name": "Jõepark",
+   "lat": 59.303349,
+   "lng": 24.436571
+  },
+  {
+   "name": "Jõgisoo mõisa park",
+   "lat": 59.2739,
+   "lng": 24.508708
+  },
+  {
+   "name": "Järve Taskupark",
+   "lat": 59.400312,
+   "lng": 24.723811
+  },
+  {
+   "name": "Jüriöö park",
+   "lat": 59.427822,
+   "lng": 24.820396
+  },
+  {
+   "name": "Kaarli puiestee esplanaad",
+   "lat": 59.432574,
+   "lng": 24.741858
+  },
+  {
+   "name": "Kadaka mets",
+   "lat": 59.406747,
+   "lng": 24.664741
+  },
+  {
+   "name": "Kadaka pst park",
+   "lat": 59.397165,
+   "lng": 24.645787
+  },
+  {
+   "name": "Kadriorg Park",
+   "lat": 59.438467,
+   "lng": 24.793333
+  },
+  {
+   "name": "Kalamaja kalmistupark",
+   "lat": 59.44919,
+   "lng": 24.730256
+  },
+  {
+   "name": "Kalma haljak",
+   "lat": 59.444204,
+   "lng": 24.736759
+  },
+  {
+   "name": "Karjamaa park",
+   "lat": 59.45258,
+   "lng": 24.709956
+  },
+  {
+   "name": "Kase park",
+   "lat": 59.458554,
+   "lng": 24.677119
+  },
+  {
+   "name": "Keila keskpark",
+   "lat": 59.308404,
+   "lng": 24.41937
+  },
+  {
+   "name": "Kellamäe park",
+   "lat": 59.485057,
+   "lng": 25.021529
+  },
+  {
+   "name": "Keskuse park",
+   "lat": 59.324013,
+   "lng": 24.554439
+  },
+  {
+   "name": "Kiige park",
+   "lat": 59.384741,
+   "lng": 24.694869
+  },
+  {
+   "name": "Kiili park",
+   "lat": 59.304632,
+   "lng": 24.839259
+  },
+  {
+   "name": "Kirikukopli park",
+   "lat": 59.358257,
+   "lng": 24.92195
+  },
+  {
+   "name": "Kitseaed",
+   "lat": 59.43813,
+   "lng": 24.742506
+  },
+  {
+   "name": "Koidu park",
+   "lat": 59.421639,
+   "lng": 24.737525
+  },
+  {
+   "name": "Koidu park (Koidu tee)",
+   "lat": 59.343883,
+   "lng": 24.590995
+  },
+  {
+   "name": "Kopli kalmistupark",
+   "lat": 59.453176,
+   "lng": 24.684888
+  },
+  {
+   "name": "Kopli liinide rannapromenaad",
+   "lat": 59.463563,
+   "lng": 24.676771
+  },
+  {
+   "name": "Kose park",
+   "lat": 59.460197,
+   "lng": 24.875707
+  },
+  {
+   "name": "Kotkapoja park",
+   "lat": 59.424043,
+   "lng": 24.725812
+  },
+  {
+   "name": "Krulli park",
+   "lat": 59.445388,
+   "lng": 24.722171
+  },
+  {
+   "name": "Kuldala park",
+   "lat": 59.403738,
+   "lng": 24.805941
+  },
+  {
+   "name": "Kurna mõisa park",
+   "lat": 59.338854,
+   "lng": 24.84649
+  },
+  {
+   "name": "Kuusepark",
+   "lat": 59.307931,
+   "lng": 24.426301
+  },
+  {
+   "name": "Lembitu park",
+   "lat": 59.431626,
+   "lng": 24.755628
+  },
+  {
+   "name": "Lepistiku park",
+   "lat": 59.402696,
+   "lng": 24.700015
+  },
+  {
+   "name": "Liivalaia trassipark",
+   "lat": 59.428058,
+   "lng": 24.750623
+  },
+  {
+   "name": "Lillepi park",
+   "lat": 59.460143,
+   "lng": 24.82929
+  },
+  {
+   "name": "Lindamägi",
+   "lat": 59.434172,
+   "lng": 24.737333
+  },
+  {
+   "name": "Lootuse puiestik",
+   "lat": 59.379855,
+   "lng": 24.705715
+  },
+  {
+   "name": "Löwenruh' park",
+   "lat": 59.416907,
+   "lng": 24.69584
+  },
+  {
+   "name": "Maardu park",
+   "lat": 59.428778,
+   "lng": 25.01791
+  },
+  {
+   "name": "Maarjamäe mälestusväli",
+   "lat": 59.455284,
+   "lng": 24.81292
+  },
+  {
+   "name": "Mai park",
+   "lat": 59.385822,
+   "lng": 24.687612
+  },
+  {
+   "name": "Margareeta aed",
+   "lat": 59.442363,
+   "lng": 24.750663
+  },
+  {
+   "name": "Marta tänava park",
+   "lat": 59.414066,
+   "lng": 24.737281
+  },
+  {
+   "name": "Meriaia haljak",
+   "lat": 59.490679,
+   "lng": 24.840667
+  },
+  {
+   "name": "Merivälja park",
+   "lat": 59.493986,
+   "lng": 24.839679
+  },
+  {
+   "name": "Musumägi",
+   "lat": 59.436142,
+   "lng": 24.751004
+  },
+  {
+   "name": "Mähe park",
+   "lat": 59.490765,
+   "lng": 24.869748
+  },
+  {
+   "name": "Männi park",
+   "lat": 59.39928,
+   "lng": 24.67621
+  },
+  {
+   "name": "Nunne haljak",
+   "lat": 59.439084,
+   "lng": 24.741282
+  },
+  {
+   "name": "Nõiajaht",
+   "lat": 59.433456,
+   "lng": 24.743885
+  },
+  {
+   "name": "Nõmme keskuse park",
+   "lat": 59.387207,
+   "lng": 24.68461
+  },
+  {
+   "name": "Oravamäe park",
+   "lat": 59.392549,
+   "lng": 24.724774
+  },
+  {
+   "name": "Otto Krameri aed",
+   "lat": 59.422058,
+   "lng": 24.705158
+  },
+  {
+   "name": "Pae park",
+   "lat": 59.43242,
+   "lng": 24.801796
+  },
+  {
+   "name": "Parditiigi park",
+   "lat": 59.404983,
+   "lng": 24.705169
+  },
+  {
+   "name": "Peetri park",
+   "lat": 59.393264,
+   "lng": 24.808252
+  },
+  {
+   "name": "Peetri uus park",
+   "lat": 59.400432,
+   "lng": 24.798654
+  },
+  {
+   "name": "Pirita keskpark",
+   "lat": 59.46797,
+   "lng": 24.834796
+  },
+  {
+   "name": "Politseiaed",
+   "lat": 59.434021,
+   "lng": 24.766226
+  },
+  {
+   "name": "Poolamägi",
+   "lat": 59.42568,
+   "lng": 24.760211
+  },
+  {
+   "name": "Priisle park",
+   "lat": 59.451794,
+   "lng": 24.881187
+  },
+  {
+   "name": "Putukaväil",
+   "lat": 59.442958,
+   "lng": 24.696576
+  },
+  {
+   "name": "Putukaväil (Puhangu)",
+   "lat": 59.443654,
+   "lng": 24.697082
+  },
+  {
+   "name": "Rannamägi",
+   "lat": 59.44279,
+   "lng": 24.746368
+  },
+  {
+   "name": "Rannavärava haljak",
+   "lat": 59.440976,
+   "lng": 24.752282
+  },
+  {
+   "name": "Ravila park",
+   "lat": 59.380695,
+   "lng": 24.68946
+  },
+  {
+   "name": "Räägu park",
+   "lat": 59.414364,
+   "lng": 24.716843
+  },
+  {
+   "name": "Saku 100 aasta park",
+   "lat": 59.308578,
+   "lng": 24.644738
+  },
+  {
+   "name": "Saku mõisa park",
+   "lat": 59.298875,
+   "lng": 24.666678
+  },
+  {
+   "name": "Sanatooriumi park",
+   "lat": 59.377341,
+   "lng": 24.666334
+  },
+  {
+   "name": "Saue mõisa park",
+   "lat": 59.326071,
+   "lng": 24.568811
+  },
+  {
+   "name": "Seli metsa perepark",
+   "lat": 59.444169,
+   "lng": 24.893995
+  },
+  {
+   "name": "Sitting area",
+   "lat": 59.410849,
+   "lng": 24.650311
+  },
+  {
+   "name": "Small park with playground",
+   "lat": 59.328043,
+   "lng": 24.47542
+  },
+  {
+   "name": "Spordikuulsuste park",
+   "lat": 59.428199,
+   "lng": 24.760574
+  },
+  {
+   "name": "Stroomi rannapark",
+   "lat": 59.442922,
+   "lng": 24.683777
+  },
+  {
+   "name": "Sõjakooli park",
+   "lat": 59.403311,
+   "lng": 24.719568
+  },
+  {
+   "name": "Süsta park",
+   "lat": 59.460434,
+   "lng": 24.66708
+  },
+  {
+   "name": "Šoti park",
+   "lat": 59.441297,
+   "lng": 24.749399
+  },
+  {
+   "name": "Tallinn Botanic Garden",
+   "lat": 59.468153,
+   "lng": 24.881341
+  },
+  {
+   "name": "Tallinna vana juudi kalmistu",
+   "lat": 59.423743,
+   "lng": 24.755436
+  },
+  {
+   "name": "Tammsaare park",
+   "lat": 59.435734,
+   "lng": 24.751914
+  },
+  {
+   "name": "Teatri väljak",
+   "lat": 59.43354,
+   "lng": 24.752582
+  },
+  {
+   "name": "Teemandi park",
+   "lat": 59.3528,
+   "lng": 24.612658
+  },
+  {
+   "name": "Telliskivi Park",
+   "lat": 59.439703,
+   "lng": 24.732683
+  },
+  {
+   "name": "Tiigiveski park",
+   "lat": 59.427771,
+   "lng": 24.759118
+  },
+  {
+   "name": "Tildri jaapanipärane minimets",
+   "lat": 59.413247,
+   "lng": 24.69379
+  },
+  {
+   "name": "Tildri Toidusalu",
+   "lat": 59.412933,
+   "lng": 24.695263
+  },
+  {
+   "name": "Tondi taskupark",
+   "lat": 59.407845,
+   "lng": 24.723468
+  },
+  {
+   "name": "Tondiloo park",
+   "lat": 59.447632,
+   "lng": 24.874529
+  },
+  {
+   "name": "Tondimõisa park",
+   "lat": 59.403977,
+   "lng": 24.709593
+  },
+  {
+   "name": "Tondiraba park",
+   "lat": 59.4461,
+   "lng": 24.853685
+  },
+  {
+   "name": "Toompark",
+   "lat": 59.437559,
+   "lng": 24.736904
+  },
+  {
+   "name": "Tornide väljak",
+   "lat": 59.440605,
+   "lng": 24.742297
+  },
+  {
+   "name": "Tui park",
+   "lat": 59.428786,
+   "lng": 24.544631
+  },
+  {
+   "name": "Tuvi park",
+   "lat": 59.428796,
+   "lng": 24.738911
+  },
+  {
+   "name": "Tõnismäe haljak",
+   "lat": 59.431224,
+   "lng": 24.739733
+  },
+  {
+   "name": "Uus-Veerenni Vahepark",
+   "lat": 59.41982,
+   "lng": 24.748673
+  },
+  {
+   "name": "Vabaduse park",
+   "lat": 59.378643,
+   "lng": 24.681245
+  },
+  {
+   "name": "Valdeku park",
+   "lat": 59.37502,
+   "lng": 24.701726
+  },
+  {
+   "name": "Vana-Lõuna haljak",
+   "lat": 59.420984,
+   "lng": 24.743482
+  },
+  {
+   "name": "Viimsi mõisapark",
+   "lat": 59.501924,
+   "lng": 24.830767
+  },
+  {
+   "name": "Vääna mõisapark",
+   "lat": 59.389257,
+   "lng": 24.414167
+  },
+  {
+   "name": "Vääna mõisapark (616398881)",
+   "lat": 59.387419,
+   "lng": 24.414805
+  },
+  {
+   "name": "Õie park",
+   "lat": 59.382869,
+   "lng": 24.698437
+  },
+  {
+   "name": "Üksnurme park",
+   "lat": 59.280919,
+   "lng": 24.630264
+  },
+  {
+   "name": "Ülemiste City park",
+   "lat": 59.421696,
+   "lng": 24.800235
+  }
+ ]
+}

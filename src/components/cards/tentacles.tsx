@@ -26,6 +26,9 @@ import { arcDistance } from "@/maps/geo-utils";
 import {
     determineUnionizedStrings,
     NO_GROUP,
+    TENTACLE_LARGE_RADIUS_KM,
+    TENTACLE_LARGE_TYPES,
+    TENTACLE_SMALL_RADIUS_KM,
     type TentacleQuestion,
     tentacleQuestionSchema,
     type TraditionalTentacleQuestion,
@@ -68,7 +71,7 @@ export const TentacleQuestionComponent = ({
             locked={!data.drag}
             setLocked={(locked) => questionModified((data.drag = !locked))}
             hidden={data.hidden}
-            setHidden={(hidden) => questionModified((data.hidden = !hidden))}
+            setHidden={(hidden) => questionModified((data.hidden = hidden))}
         >
             <SidebarMenuItem>
                 <div className={cn(MENU_ITEM_CLASSNAME, "gap-2 flex flex-row")}>
@@ -137,6 +140,17 @@ export const TentacleQuestionComponent = ({
                             }));
                             data.location = false;
                         } else {
+                            // Switch to the category's typical radius unless the user changed it
+                            const radiusFor = (type: string) =>
+                                TENTACLE_LARGE_TYPES.includes(type)
+                                    ? TENTACLE_LARGE_RADIUS_KM
+                                    : TENTACLE_SMALL_RADIUS_KM;
+                            if (
+                                data.unit === "kilometers" &&
+                                data.radius === radiusFor(data.locationType)
+                            ) {
+                                data.radius = radiusFor(value);
+                            }
                             data.location = false;
                             data.locationType = value;
                         }
@@ -236,7 +250,9 @@ const TentacleLocationSelector = ({
     useStore(triggerLocalRefresh);
     const $hiderMode = useStore(hiderMode);
     const locations = use(promise);
-    const [filteredFeatures, setFilteredFeatures] = useState<any[]>([]);
+    const [filteredFeatures, setFilteredFeatures] = useState<any[] | null>(
+        null,
+    );
 
     // Filter locations to only those within the radius of the primary location
     useEffect(() => {
@@ -289,10 +305,12 @@ const TentacleLocationSelector = ({
     }, [locations, data.lat, data.lng, data.radius, data.unit]);
 
     // If the currently selected location is no longer within radius, clear it.
+    // Wait until filtering has run, otherwise a reload wipes the saved answer.
     const _selectedLocationName = data.location
         ? data.location.properties?.name
         : null;
     if (
+        filteredFeatures !== null &&
         _selectedLocationName &&
         !filteredFeatures.find(
             (f: any) => f.properties.name === _selectedLocationName,
@@ -307,7 +325,7 @@ const TentacleLocationSelector = ({
             trigger="Location"
             options={{
                 false: "Not Within",
-                ...mapToObj(filteredFeatures, (feature: any) => [
+                ...mapToObj(filteredFeatures ?? [], (feature: any) => [
                     feature.properties.name,
                     feature.properties.name,
                 ]),
@@ -317,7 +335,7 @@ const TentacleLocationSelector = ({
                 if (value === "false") {
                     data.location = false;
                 } else {
-                    data.location = filteredFeatures.find(
+                    data.location = (filteredFeatures ?? []).find(
                         (feature: any) => feature.properties.name === value,
                     );
                 }

@@ -1,5 +1,5 @@
 import * as turf from "@turf/turf";
-import type { Feature, MultiPolygon } from "geojson";
+import type { Feature } from "geojson";
 import _ from "lodash";
 import osmtogeojson from "osmtogeojson";
 import { toast } from "react-toastify";
@@ -12,7 +12,6 @@ import {
     trainStations,
 } from "@/lib/context";
 import {
-    fetchCoastline,
     findAdminBoundary,
     findPlacesInZone,
     findPlacesSpecificInZone,
@@ -34,6 +33,13 @@ import type {
     HomeGameMeasuringQuestions,
     MeasuringQuestion,
 } from "@/maps/schema";
+
+import {
+    coastlineZone,
+    isImpossibleCloser,
+    nearestCoastline,
+    removeWater,
+} from "./coastline";
 
 export interface AdminZoneInfo {
     name: string;
@@ -91,32 +97,9 @@ const highSpeedBase = _.memoize(
     (features) => `${JSON.stringify(features.map((x) => x.geometry))}`,
 );
 
-const bboxExtension = (
-    bBox: [number, number, number, number],
-    distance: number,
-): [number, number, number, number] => {
-    const buffered = turf.bbox(
-        turf.buffer(turf.bboxPolygon(bBox), Math.abs(distance), {
-            units: "miles",
-        })!,
-    );
-
-    const originalDeltaLat = bBox[3] - bBox[1];
-    const originalDeltaLng = bBox[2] - bBox[0];
-
-    return [
-        buffered[0] - originalDeltaLng,
-        buffered[1] - originalDeltaLat,
-        buffered[2] + originalDeltaLng,
-        buffered[3] + originalDeltaLat,
-    ];
-};
-
 export const determineMeasuringBoundary = async (
     question: MeasuringQuestion,
 ) => {
-    const bBox = turf.bbox(mapGeoJSON.get()!);
-
     switch (question.type) {
         case "highspeed-measure-shinkansen": {
             const features = osmtogeojson(
@@ -153,44 +136,9 @@ export const determineMeasuringBoundary = async (
             const outline = turf.polygonToLine(zoneInfo.boundary);
             return [outline];
         }
-        case "coastline": {
-            const coastline = turf.lineToPolygon(
-                await fetchCoastline(),
-            ) as Feature<MultiPolygon>;
-
-            const distanceToCoastline = turf.pointToPolygonDistance(
-                turf.point([question.lng, question.lat]),
-                coastline,
-                {
-                    units: "miles",
-                    method: "geodesic",
-                },
-            );
-
-            return [
-                turf.difference(
-                    turf.featureCollection([
-                        turf.bboxPolygon(bBox),
-                        turf.buffer(
-                            turf.bboxClip(
-                                coastline,
-                                bBox
-                                    ? bboxExtension(
-                                          bBox as any,
-                                          distanceToCoastline,
-                                      )
-                                    : [-180, -90, 180, 90],
-                            ),
-                            distanceToCoastline,
-                            {
-                                units: "miles",
-                                steps: 64,
-                            },
-                        )!,
-                    ]),
-                )!,
-            ];
-        }
+        case "coastline":
+            // Handled separately (see coastline.ts)
+            return false;
         case "airport":
             return [
                 turf.combine(
@@ -309,6 +257,14 @@ export const determineMeasuringBoundary = async (
 
 const bufferedDeterminer = _.memoize(
     async (question: MeasuringQuestion) => {
+        if (question.type === "coastline") {
+            return coastlineZone(
+                question.lat,
+                question.lng,
+                question.hiderCloser,
+            );
+        }
+
         const placeData = await determineMeasuringBoundary(question);
 
         if (placeData === false || placeData === undefined) return false;
@@ -329,6 +285,9 @@ const bufferedDeterminer = _.memoize(
                 : mapGeoLocation.get(),
             geo: (question as any).geo,
             cat: (question as any).cat,
+            // The coastline buffer depends on the answer (tolerance direction)
+            hiderCloser:
+                question.type === "coastline" ? question.hiderCloser : null,
         }),
 );
 
@@ -340,7 +299,24 @@ export const adjustPerMeasuring = async (
 
     const buffer = await bufferedDeterminer(question);
 
-    if (buffer === false) return mapData;
+    if (question.type === "coastline") {
+        if (
+            question.hiderCloser &&
+            isImpossibleCloser(question.lat, question.lng)
+        ) {
+            toast.warning(
+                "The seeker is standing on the coastline, so nobody can be closer to it. Check the answer.",
+                { toastId: "coastline-impossible" },
+            );
+        }
+        // d ≈ 0 and "further": nothing to remove
+        if (!buffer) return question.hiderCloser ? null : mapData;
+        return removeWater(
+            modifyMapData(mapData, buffer, question.hiderCloser),
+        );
+    }
+
+    if (!buffer) return mapData;
 
     return modifyMapData(mapData, buffer, question.hiderCloser);
 };
@@ -383,6 +359,13 @@ export const hiderifyMeasuring = async (question: MeasuringQuestion) => {
             questionNearest.properties.distanceToPoint >
             hiderNearest.properties.distanceToPoint;
 
+        return question;
+    }
+
+    if (question.type === "coastline") {
+        question.hiderCloser =
+            nearestCoastline($hiderMode.longitude, $hiderMode.latitude).meters <
+            nearestCoastline(question.lng, question.lat).meters;
         return question;
     }
 
@@ -468,7 +451,7 @@ export const measuringPlanningPolygon = async (question: MeasuringQuestion) => {
     try {
         const buffered = await bufferedDeterminer(question);
 
-        if (buffered === false) return false;
+        if (!buffered) return false;
 
         return turf.polygonToLine(buffered);
     } catch {

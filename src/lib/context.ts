@@ -100,17 +100,27 @@ export const hiderMode = persistentAtom<
     decode: JSON.parse,
 });
 export const triggerLocalRefresh = atom<number>(0);
+// Tallinn defaults: hiding zones, stop points and all stop types shown, zones merged.
+// Storage keys were renamed so older saved settings don't override these defaults.
 export const displayHidingZones = persistentAtom<boolean>(
-    "displayHidingZones",
-    false,
+    "displayHidingZonesTallinn",
+    true,
     {
         encode: JSON.stringify,
         decode: JSON.parse,
     },
 );
 export const displayHidingZonesOptions = persistentAtom<string[]>(
-    "displayHidingZonesOptions",
-    ["[railway=station]"],
+    "displayHidingZonesOptionsTallinnV3",
+    ["train", "tram", "bus", "ferry"],
+    {
+        encode: JSON.stringify,
+        decode: JSON.parse,
+    },
+);
+export const displayStopPoints = persistentAtom<boolean>(
+    "displayStopPointsTallinn",
+    true,
     {
         encode: JSON.stringify,
         decode: JSON.parse,
@@ -118,7 +128,7 @@ export const displayHidingZonesOptions = persistentAtom<string[]>(
 );
 export const displayHidingZonesStyle = persistentAtom<
     "zones" | "stations" | "no-overlap" | "no-display"
->("displayHidingZonesStyle", "zones");
+>("displayHidingZonesStyleTallinn", "no-overlap");
 export const questionFinishedMapData = atom<any>(null);
 
 export const trainStations = atom<StationCircle[]>([]);
@@ -170,7 +180,8 @@ export const animateMapMovements = persistentAtom<boolean>(
         decode: JSON.parse,
     },
 );
-export const hidingRadius = persistentAtom<number>("hidingRadius", 0.5, {
+// Small game hiding zone: 1/4 mile ≈ 0.4 km
+export const hidingRadius = persistentAtom<number>("hidingRadius", 0.4, {
     encode: JSON.stringify,
     decode: JSON.parse,
 });

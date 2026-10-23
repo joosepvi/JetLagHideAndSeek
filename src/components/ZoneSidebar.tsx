@@ -4,7 +4,6 @@ import type { Feature, FeatureCollection } from "geojson";
 import * as L from "leaflet";
 import _ from "lodash";
 import { SidebarCloseIcon } from "lucide-react";
-import osmtogeojson from "osmtogeojson";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "react-toastify";
 
@@ -20,36 +19,34 @@ import {
 import {
     animateMapMovements,
     autoZoom,
-    customStations as customStationsAtom,
     disabledStations,
     displayHidingZones,
     displayHidingZonesOptions,
     displayHidingZonesStyle,
+    displayStopPoints,
     hidingRadius,
     hidingRadiusUnits,
-    includeDefaultStations as includeDefaultStationsAtom,
     isLoading,
     leafletMapContext,
-    mergeDuplicates as mergeDuplicatesAtom,
     planningModeEnabled,
     questionFinishedMapData,
     questions,
     trainStations,
-    useCustomStations as useCustomStationsAtom,
 } from "@/lib/context";
 import { cn } from "@/lib/utils";
 import {
     BLANK_GEOJSON,
-    findPlacesInZone,
     findPlacesSpecificInZone,
     findTentacleLocations,
+    getTransitStations,
     nearestToQuestion,
-    normalizeToStationFeatures,
-    parseCustomStationsFromText,
     QuestionSpecificLocation,
+    sharesLine,
     type StationCircle,
     type StationPlace,
-    trainLineNodeFinder,
+    stationZone,
+    toTransitTypes,
+    TRANSIT_OPTIONS,
 } from "@/maps/api";
 import {
     arcDistance,
@@ -58,11 +55,9 @@ import {
     geoSpatialVoronoi,
     holedMask,
     lngLatToText,
-    mergeDuplicateStation,
     safeUnion,
 } from "@/maps/geo-utils";
 
-import { Button } from "./ui/button";
 import { Checkbox } from "./ui/checkbox";
 import {
     Command,
@@ -79,14 +74,11 @@ import { ScrollToTop } from "./ui/scroll-to-top";
 import { MENU_ITEM_CLASSNAME } from "./ui/sidebar-l";
 import { UnitSelect } from "./UnitSelect";
 
-function _previewText(count: number) {
-    return `${count} custom station${count === 1 ? "" : "s"} imported`;
-}
-
 let buttonJustClicked = false;
 
 export const ZoneSidebar = () => {
     const $displayHidingZones = useStore(displayHidingZones);
+    const $displayStopPoints = useStore(displayStopPoints);
     const $questionFinishedMapData = useStore(questionFinishedMapData);
     const $displayHidingZonesOptions = useStore(displayHidingZonesOptions);
     const $displayHidingZonesStyle = useStore(displayHidingZonesStyle);
@@ -96,17 +88,16 @@ export const ZoneSidebar = () => {
     const map = useStore(leafletMapContext);
     const stations = useStore(trainStations);
     const $disabledStations = useStore(disabledStations);
-    const useCustomStations = useStore(useCustomStationsAtom);
-    const mergeDuplicates = useStore(mergeDuplicatesAtom);
-    const includeDefaultStations = useStore(includeDefaultStationsAtom);
-    const $customStations = useStore(customStationsAtom);
     const [hidingZoneModeStationID, setHidingZoneModeStationID] =
         useState<string>("");
+    // The exact stop point (one direction) chosen as the hiding zone
+    const [selectedPlatform, setSelectedPlatform] = useState<
+        [number, number] | null
+    >(null);
     const [stationSearch, setStationSearch] = useState<string>("");
     const isStationSearchActive = stationSearch.trim().length > 0;
     const setStations = trainStations.set;
     const sidebarRef = useRef<HTMLDivElement>(null);
-    const [importUrl, setImportUrl] = useState("");
 
     const removeHidingZones = () => {
         if (!map) return;
@@ -129,10 +120,13 @@ export const ZoneSidebar = () => {
         removeHidingZones();
 
         const geoJsonLayer = L.geoJSON(geoJSONData, {
+            // Zones never catch clicks, so the stop points underneath stay clickable
+            interactive: false,
             style: {
                 color: "green",
+                weight: 0.8,
                 fillColor: "green",
-                fillOpacity: 0.2,
+                fillOpacity: 0.06,
             },
             onEachFeature: nonOverlappingStations
                 ? (feature, layer) => {
@@ -172,95 +166,166 @@ export const ZoneSidebar = () => {
         geoJsonLayer.addTo(map);
     };
 
+    const removeStopPoints = () => {
+        if (!map) return;
+
+        map.eachLayer((layer: any) => {
+            if (layer.stopPoints) map.removeLayer(layer);
+        });
+    };
+
+    // Small yellow dot at every stop point (one per direction), at its exact position
+    const showStopPoints = (stationPlaces: StationPlace[]) => {
+        if (!map) return;
+
+        removeStopPoints();
+
+        // Own pane above the green zones (overlay pane) but below popups
+        if (!map.getPane("stopPoints")) {
+            const pane = map.createPane("stopPoints");
+            pane.style.zIndex = "610";
+        }
+
+        const selected: L.CircleMarker[] = [];
+        const dots = L.layerGroup(
+            stationPlaces.flatMap((station) => {
+                const id = station.properties.id as string;
+                const name = extractStationName(station) || "No Name Found";
+                const platforms: [number, number][] = (
+                    station.properties as any
+                ).platforms ?? [turf.getCoord(station)];
+                return platforms.map(([lng, lat]) => {
+                    const isSelected =
+                        id === hidingZoneModeStationID &&
+                        (selectedPlatform
+                            ? selectedPlatform[0] === lng &&
+                              selectedPlatform[1] === lat
+                            : turf.getCoord(station)[0] === lng &&
+                              turf.getCoord(station)[1] === lat);
+                    const marker = L.circleMarker(
+                        [lat, lng],
+                        isSelected
+                            ? {
+                                  pane: "stopPoints",
+                                  radius: 6,
+                                  color: "#7f1d1d",
+                                  weight: 2,
+                                  fillColor: "#dc2626",
+                                  fillOpacity: 1,
+                              }
+                            : {
+                                  pane: "stopPoints",
+                                  radius: 3,
+                                  color: "#a16207",
+                                  weight: 1,
+                                  fillColor: "#facc15",
+                                  fillOpacity: 1,
+                              },
+                    ).bindTooltip(name, { direction: "top" });
+
+                    // Clicking a stop point offers to (un)mark it as the hiding zone
+                    const content = L.DomUtil.create("div");
+                    L.DomUtil.create("b", "", content).textContent = name;
+                    const button = L.DomUtil.create(
+                        "button",
+                        "block mt-2 px-2 py-1 rounded-md text-white " +
+                            (isSelected ? "bg-slate-600" : "bg-red-600"),
+                        content,
+                    );
+                    button.textContent = isSelected
+                        ? "Remove hiding zone mark"
+                        : "Mark as hiding zone";
+                    L.DomEvent.on(button, "click", (e) => {
+                        L.DomEvent.stop(e);
+                        map.closePopup();
+                        if (isSelected) {
+                            setHidingZoneModeStationID("");
+                            setSelectedPlatform(null);
+                        } else {
+                            if (!$displayHidingZones)
+                                displayHidingZones.set(true);
+                            setSelectedPlatform([lng, lat]);
+                            setHidingZoneModeStationID(id);
+                        }
+                    });
+                    marker.bindPopup(content);
+                    // Right click opens the same choice instead of the map's menu
+                    marker.on("contextmenu", (e) => {
+                        L.DomEvent.stop(e as any);
+                        marker.openPopup();
+                    });
+
+                    if (isSelected) selected.push(marker);
+                    return marker;
+                });
+            }),
+        );
+
+        // @ts-expect-error This is intentionally added as a check
+        dots.stopPoints = true;
+
+        dots.addTo(map);
+        selected.forEach((marker) => marker.bringToFront());
+    };
+
+    useEffect(() => {
+        if (!map) return;
+
+        // "All Stations" view shows stops only through these points
+        const showPoints =
+            $displayStopPoints ||
+            ($displayHidingZones && $displayHidingZonesStyle === "stations");
+        if (!showPoints) {
+            removeStopPoints();
+            return;
+        }
+
+        if ($displayHidingZones && stations.length > 0) {
+            // Only the stops whose hiding zones are still possible
+            showStopPoints(
+                stations
+                    .filter(
+                        (x) =>
+                            !$disabledStations.includes(
+                                x.properties.properties.id,
+                            ),
+                    )
+                    .map((x) => x.properties),
+            );
+        } else {
+            showStopPoints(
+                getTransitStations(toTransitTypes($displayHidingZonesOptions))
+                    .features as unknown as StationPlace[],
+            );
+        }
+    }, [
+        map,
+        $displayStopPoints,
+        $displayHidingZones,
+        $displayHidingZonesStyle,
+        $displayHidingZonesOptions,
+        $disabledStations,
+        stations,
+        hidingZoneModeStationID,
+        selectedPlatform,
+    ]);
+
     useEffect(() => {
         if (!map || isLoading.get()) return;
 
         const initializeHidingZones = async () => {
             isLoading.set(true);
 
-            const needsDefault = !useCustomStations || includeDefaultStations;
-            if (needsDefault && $displayHidingZonesOptions.length === 0) {
+            const types = toTransitTypes($displayHidingZonesOptions);
+            if (types.length === 0) {
                 toast.error("At least one place type must be selected");
                 isLoading.set(false);
                 return;
             }
 
-            let places: StationPlace[] = [];
-
-            if (!needsDefault) {
-                // Custom only
-                places = normalizeToStationFeatures(
-                    $customStations,
-                ).features.map((f) => ({
-                    type: "Feature",
-                    geometry: f.geometry,
-                    properties: {
-                        id:
-                            f.properties?.id ||
-                            `${(f.geometry as any).coordinates[1]},${(f.geometry as any).coordinates[0]}`,
-                        name: f.properties?.name,
-                    },
-                }));
-            } else {
-                // Fetch default, optionally merge custom
-                // @ts-expect-error osmtogeojson always defines properties with an "id" string
-                places = osmtogeojson(
-                    await findPlacesInZone(
-                        $displayHidingZonesOptions[0],
-                        "Finding stations. This may take a while. Do not press any buttons while this is processing. Don't worry, it will be cached.",
-                        "nwr",
-                        "center",
-                        $displayHidingZonesOptions.slice(1),
-                    ),
-                ).features;
-
-                if (
-                    useCustomStations &&
-                    $customStations.length > 0 &&
-                    includeDefaultStations
-                ) {
-                    const customFeatures = normalizeToStationFeatures(
-                        $customStations,
-                    ).features.map(
-                        (f) =>
-                            ({
-                                type: "Feature",
-                                geometry: f.geometry,
-                                properties: {
-                                    id:
-                                        f.properties?.id ||
-                                        `${f.geometry.coordinates[1]},${f.geometry.coordinates[0]}`,
-                                    name: f.properties?.name,
-                                },
-                            }) as StationPlace,
-                    );
-                    const seen = new Set<string>();
-                    const merged: StationPlace[] = [];
-                    const add = (feat: StationPlace) => {
-                        const id = feat.properties.id as string | undefined;
-                        const key =
-                            id && id.includes("/")
-                                ? `id:${id}`
-                                : `pt:${feat.geometry.coordinates[1]},${feat.geometry.coordinates[0]}`;
-                        if (!seen.has(key)) {
-                            seen.add(key);
-                            merged.push(feat);
-                        }
-                    };
-                    places.forEach(add);
-                    customFeatures.forEach(add);
-                    places = merged;
-                }
-            }
-
-            // merge duplicate stations if selected
-            if (mergeDuplicates) {
-                places = await mergeDuplicateStation(
-                    places,
-                    $hidingRadius,
-                    $hidingRadiusUnits,
-                );
-            }
+            // Built-in Tallinn stops (transport.tallinn.ee + Elron)
+            const places = getTransitStations(types)
+                .features as unknown as StationPlace[];
 
             const unionized = safeUnion(
                 turf.simplify($questionFinishedMapData, {
@@ -269,17 +334,16 @@ export const ZoneSidebar = () => {
             );
 
             let circles = places
-                .map((place) => {
-                    const radius = $hidingRadius;
-                    const center = turf.getCoord(place);
-                    const circle = turf.circle(center, radius, {
-                        steps: 32,
-                        units: $hidingRadiusUnits,
-                        properties: place,
-                    });
-
-                    return circle;
-                })
+                // One zone per stop: circles around each platform, merged
+                .map(
+                    (place) =>
+                        stationZone(
+                            place as any,
+                            $hidingRadius,
+                            $hidingRadiusUnits,
+                            place,
+                        ) as unknown as StationCircle,
+                )
                 .filter((circle) => {
                     return !turf.booleanWithin(circle, unionized);
                 });
@@ -288,6 +352,8 @@ export const ZoneSidebar = () => {
                 if (planningModeEnabled.get() && question.data.drag) {
                     continue;
                 }
+                // Hidden questions (eye button) don't filter hiding zones
+                if (question.data.hidden) continue;
 
                 if (
                     question.id === "matching" &&
@@ -308,45 +374,14 @@ export const ZoneSidebar = () => {
                     );
 
                     if (question.data.type === "same-train-line") {
-                        // Custom-only lists don't have reliable OSM IDs
-                        if (useCustomStations && !includeDefaultStations) {
-                            toast.warning(
-                                "'Same train line' isn't supported with custom-only station lists; skipping this filter.",
+                        // Stops share a line if any of their (selected type) lines match
+                        circles = circles.filter((circle) => {
+                            const shared = sharesLine(
+                                nearestTrainStation.properties as any,
+                                circle.properties.properties as any,
                             );
-                        } else {
-                            const nid = nearestTrainStation.properties.id as
-                                | string
-                                | undefined;
-                            if (!nid || !nid.includes("/")) {
-                                toast.warning(
-                                    "Nearest station has no OSM id; skipping 'same train line' filter.",
-                                );
-                                continue;
-                            }
-
-                            const nodes = await trainLineNodeFinder(nid);
-
-                            if (nodes.length === 0) {
-                                toast.warning(
-                                    `No train line found for ${extractStationName(
-                                        nearestTrainStation,
-                                    )}`,
-                                );
-                                continue;
-                            } else {
-                                circles = circles.filter((circle) => {
-                                    const idProp =
-                                        circle.properties.properties.id;
-                                    if (!idProp || !idProp.includes("/"))
-                                        return false;
-                                    const id = parseInt(idProp.split("/")[1]);
-
-                                    return question.data.same
-                                        ? nodes.includes(id)
-                                        : !nodes.includes(id);
-                                });
-                            }
-                        }
+                            return question.data.same ? shared : !shared;
+                        });
                     }
 
                     const englishName = extractStationName(nearestTrainStation);
@@ -450,10 +485,6 @@ export const ZoneSidebar = () => {
         $displayHidingZones,
         $displayHidingZonesOptions,
         $hidingRadius,
-        useCustomStations,
-        includeDefaultStations,
-        $customStations,
-        mergeDuplicates,
     ]);
 
     useEffect(() => {
@@ -466,8 +497,24 @@ export const ZoneSidebar = () => {
             );
 
             if (hiderStation !== undefined) {
+                // Only the chosen stop point's own circle (not the whole stop)
+                const point =
+                    selectedPlatform ??
+                    (turf.getCoord(hiderStation.properties) as [
+                        number,
+                        number,
+                    ]);
+                const place = {
+                    ...hiderStation.properties,
+                    geometry: { type: "Point", coordinates: point },
+                };
+                const single = turf.circle(point, $hidingRadius, {
+                    steps: 64,
+                    units: $hidingRadiusUnits,
+                    properties: place,
+                });
                 selectionProcess(
-                    hiderStation,
+                    single,
                     map,
                     stations,
                     showGeoJSON,
@@ -490,8 +537,13 @@ export const ZoneSidebar = () => {
                 (x) => !$disabledStations.includes(x.properties.properties.id),
             );
             showGeoJSON(
-                styleStations(activeStations, $displayHidingZonesStyle),
-                $displayHidingZonesStyle === "zones",
+                styleStations(
+                    activeStations,
+                    $displayHidingZonesStyle,
+                    $hidingRadius,
+                    $hidingRadiusUnits,
+                ),
+                false, // zones are not clickable; select via a stop point
             );
         } else {
             removeHidingZones();
@@ -501,8 +553,10 @@ export const ZoneSidebar = () => {
         $displayHidingZones,
         $displayHidingZonesStyle,
         $hidingRadius,
+        $hidingRadiusUnits,
         $questionFinishedMapData,
         hidingZoneModeStationID,
+        selectedPlatform,
         stations,
     ]);
 
@@ -533,6 +587,17 @@ export const ZoneSidebar = () => {
                                     disabled={$isLoading}
                                 />
                             </SidebarMenuItem>
+                            <SidebarMenuItem className={MENU_ITEM_CLASSNAME}>
+                                <Label className="font-semibold font-poppins">
+                                    Display transport stop points?
+                                </Label>
+                                <Checkbox
+                                    checked={$displayStopPoints}
+                                    onCheckedChange={(v) =>
+                                        displayStopPoints.set(!!v)
+                                    }
+                                />
+                            </SidebarMenuItem>
                             <SidebarMenuItem
                                 className={cn(
                                     MENU_ITEM_CLASSNAME,
@@ -543,280 +608,8 @@ export const ZoneSidebar = () => {
                                 your device.
                             </SidebarMenuItem>
                             <SidebarMenuItem className={MENU_ITEM_CLASSNAME}>
-                                <div className="flex flex-row items-center justify-between w-full">
-                                    <Label className="font-semibold font-poppins">
-                                        Use custom station list?
-                                    </Label>
-                                    <Checkbox
-                                        checked={useCustomStations}
-                                        onCheckedChange={(v) =>
-                                            useCustomStationsAtom.set(!!v)
-                                        }
-                                        disabled={$isLoading}
-                                    />
-                                </div>
-                            </SidebarMenuItem>
-                            <SidebarMenuItem className={MENU_ITEM_CLASSNAME}>
-                                <div className="flex flex-row items-center justify-between w-full">
-                                    <Label className="font-semibold font-poppins">
-                                        Merge duplicated stations?
-                                    </Label>
-                                    <Checkbox
-                                        checked={mergeDuplicates}
-                                        onCheckedChange={(v) =>
-                                            mergeDuplicatesAtom.set(!!v)
-                                        }
-                                        disabled={$isLoading}
-                                    />
-                                </div>
-                            </SidebarMenuItem>
-                            {useCustomStations && (
-                                <>
-                                    <SidebarMenuItem
-                                        className={MENU_ITEM_CLASSNAME}
-                                    >
-                                        <div className="flex flex-col gap-2 w-full">
-                                            <Label className="font-semibold font-poppins leading-5">
-                                                Import stations from URL (CSV,
-                                                GeoJSON, KML). This must be a
-                                                raw file link.
-                                            </Label>
-                                            <div className="flex gap-2">
-                                                <Input
-                                                    placeholder="https://..."
-                                                    value={importUrl}
-                                                    onChange={(e) =>
-                                                        setImportUrl(
-                                                            e.target.value,
-                                                        )
-                                                    }
-                                                    disabled={$isLoading}
-                                                />
-                                                <button
-                                                    className="bg-blue-600 text-white px-3 rounded-md"
-                                                    disabled={$isLoading}
-                                                    onClick={async () => {
-                                                        if (!importUrl) return;
-                                                        try {
-                                                            const res =
-                                                                await fetch(
-                                                                    importUrl,
-                                                                );
-                                                            const contentType =
-                                                                res.headers.get(
-                                                                    "content-type",
-                                                                ) || undefined;
-                                                            const text =
-                                                                await res.text();
-                                                            const parsed =
-                                                                parseCustomStationsFromText(
-                                                                    text,
-                                                                    contentType ||
-                                                                        undefined,
-                                                                );
-                                                            if (
-                                                                parsed.length ===
-                                                                0
-                                                            ) {
-                                                                toast.error(
-                                                                    "No stations found in provided URL",
-                                                                );
-                                                                return;
-                                                            }
-                                                            customStationsAtom.set(
-                                                                parsed,
-                                                            );
-                                                            toast.success(
-                                                                `Imported ${parsed.length} stations`,
-                                                            );
-                                                        } catch (e: any) {
-                                                            toast.error(
-                                                                `Failed to import from URL: ${e.message || e}`,
-                                                            );
-                                                        }
-                                                    }}
-                                                >
-                                                    Import
-                                                </button>
-                                            </div>
-                                            <div>
-                                                <Input
-                                                    type="file"
-                                                    multiple
-                                                    accept=".csv,.json,.geojson,.kml,application/json,application/vnd.google-earth.kml+xml,text/csv,application/vnd.google-apps.kml+xml,application/xml,text/xml"
-                                                    onInput={async (e) => {
-                                                        const files = (
-                                                            e.target as HTMLInputElement
-                                                        ).files;
-                                                        if (
-                                                            !files ||
-                                                            files.length === 0
-                                                        )
-                                                            return;
-                                                        try {
-                                                            const all: any[] =
-                                                                [];
-                                                            for (const file of Array.from(
-                                                                files,
-                                                            )) {
-                                                                const text =
-                                                                    await file.text();
-                                                                const parsed =
-                                                                    parseCustomStationsFromText(
-                                                                        text,
-                                                                        file.type,
-                                                                    );
-                                                                all.push(
-                                                                    ...parsed,
-                                                                );
-                                                            }
-                                                            if (
-                                                                all.length === 0
-                                                            ) {
-                                                                toast.error(
-                                                                    "No stations found in uploaded files",
-                                                                );
-                                                                return;
-                                                            }
-                                                            const byKey =
-                                                                new Map<
-                                                                    string,
-                                                                    any
-                                                                >();
-                                                            for (const s of all) {
-                                                                const key =
-                                                                    s.id &&
-                                                                    s.id.includes(
-                                                                        "/",
-                                                                    )
-                                                                        ? `id:${s.id}`
-                                                                        : `pt:${s.lat},${s.lng}`;
-                                                                if (
-                                                                    !byKey.has(
-                                                                        key,
-                                                                    )
-                                                                )
-                                                                    byKey.set(
-                                                                        key,
-                                                                        s,
-                                                                    );
-                                                            }
-                                                            const unique =
-                                                                Array.from(
-                                                                    byKey.values(),
-                                                                );
-                                                            customStationsAtom.set(
-                                                                unique,
-                                                            );
-                                                            toast.success(
-                                                                `Imported ${unique.length} stations`,
-                                                            );
-                                                        } catch (e: any) {
-                                                            toast.error(
-                                                                `Failed to import files: ${e.message || e}`,
-                                                            );
-                                                        }
-                                                    }}
-                                                />
-                                            </div>
-                                            <div className="flex flex-row items-center justify-between w-full">
-                                                <Label className="font-semibold font-poppins">
-                                                    Include default stations
-                                                    with custom list?
-                                                </Label>
-                                                <Checkbox
-                                                    checked={
-                                                        includeDefaultStations
-                                                    }
-                                                    onCheckedChange={(v) =>
-                                                        includeDefaultStationsAtom.set(
-                                                            !!v,
-                                                        )
-                                                    }
-                                                    disabled={$isLoading}
-                                                />
-                                            </div>
-                                            {$customStations.length > 0 && (
-                                                <div className="text-sm text-gray-300">
-                                                    {_previewText(
-                                                        $customStations.length,
-                                                    )}
-                                                </div>
-                                            )}
-                                            {$customStations.length > 0 && (
-                                                <div className="flex gap-2">
-                                                    <Button
-                                                        className="w-full"
-                                                        onClick={() =>
-                                                            customStationsAtom.set(
-                                                                [],
-                                                            )
-                                                        }
-                                                    >
-                                                        Clear Imported
-                                                    </Button>
-                                                </div>
-                                            )}
-                                        </div>
-                                    </SidebarMenuItem>
-                                </>
-                            )}
-                            <SidebarMenuItem className={MENU_ITEM_CLASSNAME}>
                                 <MultiSelect
-                                    options={[
-                                        {
-                                            label: "Railway Stations",
-                                            value: "[railway=station]",
-                                        },
-                                        {
-                                            label: "Railway Halts",
-                                            value: "[railway=halt]",
-                                        },
-                                        {
-                                            label: "Railway Stops",
-                                            value: "[railway=stop]",
-                                        },
-                                        {
-                                            label: "Tram Stops",
-                                            value: "[railway=tram_stop]",
-                                        },
-                                        {
-                                            label: "Bus Stops",
-                                            value: "[highway=bus_stop]",
-                                        },
-                                        {
-                                            label: "Ferry Terminals",
-                                            value: "[amenity=ferry_terminal]",
-                                        },
-                                        {
-                                            label: "Ferry Platforms (public transport)",
-                                            value: "[public_transport=platform][platform=ferry]",
-                                        },
-                                        {
-                                            label: "Funicular Stations",
-                                            value: "[railway=funicular]",
-                                        },
-                                        {
-                                            label: "Aerialway Stations",
-                                            value: "[aerialway=station]",
-                                        },
-                                        {
-                                            label: "Railway Stations Excluding Subways",
-                                            value: "[railway=station][subway!=yes]",
-                                        },
-                                        {
-                                            label: "Subway Stations",
-                                            value: "[railway=station][subway=yes]",
-                                        },
-                                        {
-                                            label: "Light Rail Stations",
-                                            value: "[railway=station][light_rail=yes]",
-                                        },
-                                        {
-                                            label: "Light Rail Halts",
-                                            value: "[railway=halt][light_rail=yes]",
-                                        },
-                                    ]}
+                                    options={TRANSIT_OPTIONS}
                                     onValueChange={
                                         displayHidingZonesOptions.set
                                     }
@@ -826,11 +619,7 @@ export const ZoneSidebar = () => {
                                     maxCount={3}
                                     modalPopover
                                     className="!bg-popover bg-opacity-100"
-                                    disabled={
-                                        $isLoading ||
-                                        (useCustomStations &&
-                                            !includeDefaultStations)
-                                    }
+                                    disabled={$isLoading}
                                 />
                             </SidebarMenuItem>
                             <SidebarMenuItem>
@@ -930,8 +719,10 @@ export const ZoneSidebar = () => {
                                                 x.properties.properties.id ===
                                                 hidingZoneModeStationID,
                                         );
+                                        // Stations may still be loading, or the saved id may be gone
+                                        if (!selected) return "…";
                                         const displayName = extractStationLabel(
-                                            selected?.properties,
+                                            selected.properties,
                                         );
                                         const id = selected?.properties
                                             .properties.id as string;
@@ -1083,6 +874,9 @@ export const ZoneSidebar = () => {
                                                             buttonJustClicked =
                                                                 true;
 
+                                                            setSelectedPlatform(
+                                                                null,
+                                                            );
                                                             setHidingZoneModeStationID(
                                                                 station
                                                                     .properties
@@ -1112,19 +906,39 @@ export const ZoneSidebar = () => {
 function styleStations(
     circles: StationCircle[],
     style: string,
+    radius: number,
+    units: turf.Units,
 ): FeatureCollection | Feature {
     switch (style) {
         case "no-display":
             return { type: "FeatureCollection", features: [] };
 
         case "no-overlap":
+            // Union needs at least two shapes (stations may still be loading)
+            if (circles.length < 2) return turf.featureCollection(circles);
             return safeUnion(turf.featureCollection(circles));
 
         case "stations":
-            return turf.featureCollection(circles.map((c) => c.properties));
+            // Stops are shown by the yellow stop points; no zones, no extra icons
+            return { type: "FeatureCollection", features: [] };
 
         default:
-            return turf.featureCollection(circles);
+            // A separate circle around every stop point (each direction)
+            return turf.featureCollection(
+                circles.flatMap((c) => {
+                    const platforms: [number, number][] | undefined = (
+                        c.properties.properties as any
+                    ).platforms;
+                    if (!platforms) return [c];
+                    return platforms.map((coord) =>
+                        turf.circle(coord, radius, {
+                            steps: 32,
+                            units,
+                            properties: c.properties,
+                        }),
+                    );
+                }),
+            );
     }
 }
 
@@ -1156,6 +970,7 @@ async function selectionProcess(
         if (planningModeEnabled.get() && question.data.drag) {
             continue;
         }
+        if (question.data.hidden) continue;
 
         if (
             (question.id === "measuring" || question.id === "matching") &&
@@ -1189,6 +1004,7 @@ async function selectionProcess(
                         locationType: question.data.type,
                     },
                     "Finding matching locations to hiding zone...",
+                    true,
                 );
 
                 const distances: any[] = await Promise.all(

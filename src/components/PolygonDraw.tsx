@@ -478,33 +478,37 @@ export const PolygonDraw = () => {
                         fill={false}
                     />
                 ))}
-            <EditControl
-                position="bottomleft"
-                draw={{
-                    rectangle: false,
-                    circle: false,
-                    circlemarker: false,
-                    marker:
-                        question?.id === "tentacles" ||
-                        (question?.id === "matching" &&
-                            question.data.type === "custom-points") ||
-                        question?.id === "measuring"
-                            ? true
-                            : false,
-                    polyline: question?.id === "measuring",
-                    polygon:
-                        question?.id === "tentacles" ||
-                        (question?.id === "matching" &&
-                            question.data.type === "custom-points")
-                            ? false
-                            : {
-                                  shapeOptions: { fillOpacity: 0 },
-                              },
-                }}
-                onCreated={onChange}
-                onEdited={onChange}
-                onDeleted={onChange}
-            />
+            {/* Drawing tools only while a custom question is being drawn */}
+            {$drawingQuestionKey !== -1 && (
+                <EditControl
+                    key={$drawingQuestionKey}
+                    position="bottomleft"
+                    draw={{
+                        rectangle: false,
+                        circle: false,
+                        circlemarker: false,
+                        marker:
+                            question?.id === "tentacles" ||
+                            (question?.id === "matching" &&
+                                question.data.type === "custom-points") ||
+                            question?.id === "measuring"
+                                ? true
+                                : false,
+                        polyline: question?.id === "measuring",
+                        polygon:
+                            question?.id === "tentacles" ||
+                            (question?.id === "matching" &&
+                                question.data.type === "custom-points")
+                                ? false
+                                : {
+                                      shapeOptions: { fillOpacity: 0 },
+                                  },
+                    }}
+                    onCreated={onChange}
+                    onEdited={onChange}
+                    onDeleted={onChange}
+                />
+            )}
         </FeatureGroup>
     );
 };

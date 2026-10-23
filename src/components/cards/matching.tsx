@@ -24,6 +24,7 @@ import {
     triggerLocalRefresh,
 } from "@/lib/context";
 import { cn } from "@/lib/utils";
+import { TALLINN_ZONE_LEVELS } from "@/maps/api";
 import {
     determineMatchingBoundary,
     findMatchingPlaces,
@@ -76,18 +77,8 @@ export const MatchingQuestionComponent = ({
                 <>
                     <SidebarMenuItem className={MENU_ITEM_CLASSNAME}>
                         <Select
-                            trigger="OSM Zone"
-                            options={{
-                                2: "OSM Zone 2 (Country)",
-                                3: "OSM Zone 3 (region in Japan)",
-                                4: "OSM Zone 4 (prefecture in Japan)",
-                                5: "OSM Zone 5",
-                                6: "OSM Zone 6",
-                                7: "OSM Zone 7",
-                                8: "OSM Zone 8",
-                                9: "OSM Zone 9",
-                                10: "OSM Zone 10",
-                            }}
+                            trigger="Zone"
+                            options={TALLINN_ZONE_LEVELS}
                             value={data.cat.adminLevel.toString()}
                             onValueChange={(value) =>
                                 questionModified(
@@ -119,16 +110,13 @@ export const MatchingQuestionComponent = ({
         case "same-train-line":
             questionSpecific = (
                 <span className="px-2 text-center text-orange-500">
-                    Warning: The train line data is based on OpenStreetMap and
-                    may have fewer train stations than expected. If you are
-                    using this tool, ensure that the other players are also
-                    using this tool.
+                    Uses the stops and lines of the hiding zone place types
+                    (transport.tallinn.ee and Elron timetables). Make sure the
+                    other players use the same settings.
                 </span>
             );
             break;
-        case "aquarium":
         case "hospital":
-        case "peak":
         case "museum":
         case "theme_park":
         case "zoo":
@@ -191,7 +179,7 @@ export const MatchingQuestionComponent = ({
             locked={!data.drag}
             setLocked={(locked) => questionModified((data.drag = !locked))}
             hidden={data.hidden}
-            setHidden={(hidden) => questionModified((data.hidden = !hidden))}
+            setHidden={(hidden) => questionModified((data.hidden = hidden))}
         >
             <CustomInitDialog
                 open={customDialogOpen}
@@ -217,16 +205,12 @@ export const MatchingQuestionComponent = ({
                     } else {
                         if (
                             data.type === "airport" ||
-                            data.type === "major-city" ||
-                            data.type === "aquarium-full" ||
                             data.type === "zoo-full" ||
                             data.type === "theme_park-full" ||
-                            data.type === "peak-full" ||
                             data.type === "museum-full" ||
                             data.type === "hospital-full" ||
                             data.type === "cinema-full" ||
                             data.type === "library-full" ||
-                            data.type === "golf_course-full" ||
                             data.type === "consulate-full" ||
                             data.type === "park-full"
                         ) {
@@ -322,16 +306,12 @@ export const MatchingQuestionComponent = ({
                                 } else {
                                     if (
                                         data.type === "airport" ||
-                                        data.type === "major-city" ||
-                                        data.type === "aquarium-full" ||
                                         data.type === "zoo-full" ||
                                         data.type === "theme_park-full" ||
-                                        data.type === "peak-full" ||
                                         data.type === "museum-full" ||
                                         data.type === "hospital-full" ||
                                         data.type === "cinema-full" ||
                                         data.type === "library-full" ||
-                                        data.type === "golf_course-full" ||
                                         data.type === "consulate-full" ||
                                         data.type === "park-full"
                                     ) {
@@ -347,7 +327,7 @@ export const MatchingQuestionComponent = ({
                             }
                             // The category should be defined such that no error is thrown if this is a zone question.
                             if (!(data as any).cat) {
-                                (data as any).cat = { adminLevel: 3 };
+                                (data as any).cat = { adminLevel: 9 };
                             }
                             questionModified((data.type = value));
                             return;
@@ -360,7 +340,7 @@ export const MatchingQuestionComponent = ({
 
                         // The category should be defined such that no error is thrown if this is a zone question.
                         if (!(data as any).cat) {
-                            (data as any).cat = { adminLevel: 3 };
+                            (data as any).cat = { adminLevel: 9 };
                         }
                         questionModified((data.type = value));
                     }}

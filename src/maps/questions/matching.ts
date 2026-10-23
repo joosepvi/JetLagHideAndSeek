@@ -1,28 +1,25 @@
 import * as turf from "@turf/turf";
-import type {
-    Feature,
-    FeatureCollection,
-    MultiPolygon,
-    Point,
-    Polygon,
-} from "geojson";
 import _ from "lodash";
-import osmtogeojson from "osmtogeojson";
 import { toast } from "react-toastify";
 
 import {
+    displayHidingZonesOptions,
     hiderMode,
     mapGeoJSON,
     mapGeoLocation,
     polyGeoJSON,
 } from "@/lib/context";
 import {
-    findAdminBoundary,
-    findPlacesInZone,
-    LOCATION_FIRST_TAG,
+    findTallinnZone,
+    findTallinnZonesByLetter,
+    getTallinnPlaces,
+    getTransitStations,
+    isInPlayArea,
     nearestToQuestion,
-    prettifyLocation,
-    trainLineNodeFinder,
+    sharesLine,
+    TALLINN_AIRPORTS,
+    toPoints,
+    toTransitTypes,
 } from "@/maps/api";
 import { holedMask, modifyMapData, safeUnion } from "@/maps/geo-utils";
 import { geoSpatialVoronoi } from "@/maps/geo-utils";
@@ -35,85 +32,26 @@ import type {
 export const findMatchingPlaces = async (question: MatchingQuestion) => {
     switch (question.type) {
         case "airport": {
-            return _.uniqBy(
-                (
-                    await findPlacesInZone(
-                        '["aeroway"="aerodrome"]["iata"]', // Only commercial airports have IATA codes,
-                        "Finding airports...",
-                    )
-                ).elements,
-                (feature: any) => feature.tags.iata,
-            ).map((x) =>
-                turf.point([
-                    x.center ? x.center.lon : x.lon,
-                    x.center ? x.center.lat : x.lat,
-                ]),
-            );
-        }
-        case "major-city": {
-            return (
-                await findPlacesInZone(
-                    '[place=city]["population"~"^[1-9]+[0-9]{6}$"]', // The regex is faster than (if:number(t["population"])>1000000)
-                    "Finding cities...",
-                )
-            ).elements.map((x: any) =>
-                turf.point([
-                    x.center ? x.center.lon : x.lon,
-                    x.center ? x.center.lat : x.lat,
-                ]),
-            );
+            // All airports and airstrips around Tallinn (only EETN is commercial)
+            return toPoints(TALLINN_AIRPORTS).features;
         }
         case "custom-points": {
             return question.geo!;
         }
-        case "aquarium-full":
         case "zoo-full":
         case "theme_park-full":
-        case "peak-full":
         case "museum-full":
         case "hospital-full":
         case "cinema-full":
         case "library-full":
-        case "golf_course-full":
         case "consulate-full":
         case "park-full": {
             const location = question.type.split("-full")[0] as APILocations;
-
-            const data = await findPlacesInZone(
-                `[${LOCATION_FIRST_TAG[location]}=${location}]`,
-                `Finding ${prettifyLocation(location, true).toLowerCase()}...`,
-                "nwr",
-                "center",
-                [],
-                60,
-            );
-
-            if (data.remark && data.remark.startsWith("runtime error")) {
-                toast.error(
-                    `Error finding ${prettifyLocation(
-                        location,
-                        true,
-                    ).toLowerCase()}. Please enable hiding zone mode and switch to the Large Game variation of this question.`,
-                );
-                return [];
-            }
-
-            if (data.elements.length >= 1000) {
-                toast.error(
-                    `Too many ${prettifyLocation(
-                        location,
-                        true,
-                    ).toLowerCase()} found (${data.elements.length}). Please enable hiding zone mode and switch to the Large Game variation of this question.`,
-                );
-                return [];
-            }
-
-            return data.elements.map((x: any) =>
-                turf.point([
-                    x.center ? x.center.lon : x.lon,
-                    x.center ? x.center.lat : x.lat,
-                ]),
-            );
+            return toPoints(
+                getTallinnPlaces(location).filter((p) =>
+                    isInPlayArea(p.lng, p.lat),
+                ),
+            ).features;
         }
     }
 };
@@ -123,10 +61,8 @@ export const determineMatchingBoundary = _.memoize(
         let boundary;
 
         switch (question.type) {
-            case "aquarium":
             case "zoo":
             case "theme_park":
-            case "peak":
             case "museum":
             case "hospital":
             case "cinema":
@@ -144,86 +80,48 @@ export const determineMatchingBoundary = _.memoize(
                 break;
             }
             case "zone": {
-                boundary = await findAdminBoundary(
+                boundary = findTallinnZone(
                     question.lat,
                     question.lng,
                     question.cat.adminLevel,
                 );
 
                 if (!boundary) {
-                    toast.error("No boundary found for this zone");
+                    toast.error("No district found at this location");
                     throw new Error("No boundary found");
                 }
                 break;
             }
             case "letter-zone": {
-                const zone = await findAdminBoundary(
+                const zone = findTallinnZone(
                     question.lat,
                     question.lng,
                     question.cat.adminLevel,
                 );
 
                 if (!zone) {
-                    toast.error("No boundary found for this zone");
+                    toast.error("No district found at this location");
                     throw new Error("No boundary found");
                 }
 
-                let englishName = zone.properties?.["name:en"];
-
-                if (!englishName) {
-                    const name = zone.properties?.name;
-
-                    if (/^[a-zA-Z]$/.test(name[0])) {
-                        englishName = name;
-                    } else {
-                        toast.error("No English name found for this zone");
-                        throw new Error("No English name");
-                    }
-                }
-
-                const letter = englishName[0].toUpperCase();
-
-                boundary = turf.featureCollection(
-                    osmtogeojson(
-                        await findPlacesInZone(
-                            `[admin_level=${question.cat.adminLevel}]["name:en"~"^${letter}.+"]`, // Regex is faster than filtering afterward
-                            `Finding zones that start with the same letter (${letter})...`,
-                            "relation",
-                            "geom",
-                            [
-                                `[admin_level=${question.cat.adminLevel}]["name"~"^${letter}.+"]`,
-                            ], // Regex is faster than filtering afterward
+                const letter = zone.properties.name[0].toUpperCase();
+                boundary = safeUnion(
+                    turf.featureCollection(
+                        findTallinnZonesByLetter(
+                            question.cat.adminLevel,
+                            letter,
                         ),
-                    ).features.filter(
-                        (x): x is Feature<Polygon | MultiPolygon> =>
-                            x.geometry &&
-                            (x.geometry.type === "Polygon" ||
-                                x.geometry.type === "MultiPolygon"),
                     ),
                 );
-
-                // It's either simplify or crash. Technically this could be bad if someone's hiding zone was inside multiple zones, but that's unlikely.
-                boundary = safeUnion(
-                    turf.simplify(boundary, {
-                        tolerance: 0.001,
-                        highQuality: true,
-                        mutate: true,
-                    }),
-                );
-
                 break;
             }
             case "airport":
-            case "major-city":
-            case "aquarium-full":
             case "zoo-full":
             case "theme_park-full":
-            case "peak-full":
             case "museum-full":
             case "hospital-full":
             case "cinema-full":
             case "library-full":
-            case "golf_course-full":
             case "consulate-full":
             case "park-full":
             case "custom-points": {
@@ -280,10 +178,8 @@ export const hiderifyMatching = async (question: MatchingQuestion) => {
 
     if (
         [
-            "aquarium",
             "zoo",
             "theme_park",
-            "peak",
             "museum",
             "hospital",
             "cinema",
@@ -323,13 +219,9 @@ export const hiderifyMatching = async (question: MatchingQuestion) => {
         ]);
         const seekerPoint = turf.point([question.lng, question.lat]);
 
-        const places = osmtogeojson(
-            await findPlacesInZone(
-                "[railway=station]",
-                "Finding train stations. This may take a while. Do not press any buttons while this is processing. Don't worry, it will be cached.",
-                "node",
-            ),
-        ) as FeatureCollection<Point>;
+        const places = getTransitStations(
+            toTransitTypes(displayHidingZonesOptions.get()),
+        );
 
         const nearestHiderTrainStation = turf.nearestPoint(hiderPoint, places);
         const nearestSeekerTrainStation = turf.nearestPoint(
@@ -338,27 +230,14 @@ export const hiderifyMatching = async (question: MatchingQuestion) => {
         );
 
         if (question.type === "same-train-line") {
-            const nodes = await trainLineNodeFinder(
-                nearestSeekerTrainStation.properties.id,
+            question.same = sharesLine(
+                nearestSeekerTrainStation.properties as any,
+                nearestHiderTrainStation.properties as any,
             );
-
-            const hiderId = parseInt(
-                nearestHiderTrainStation.properties.id.split("/")[1],
-            );
-
-            if (nodes.includes(hiderId)) {
-                question.same = true;
-            } else {
-                question.same = false;
-            }
         }
 
-        const hiderEnglishName =
-            nearestHiderTrainStation.properties["name:en"] ||
-            nearestHiderTrainStation.properties.name;
-        const seekerEnglishName =
-            nearestSeekerTrainStation.properties["name:en"] ||
-            nearestSeekerTrainStation.properties.name;
+        const hiderEnglishName = nearestHiderTrainStation.properties.name;
+        const seekerEnglishName = nearestSeekerTrainStation.properties.name;
 
         if (!hiderEnglishName || !seekerEnglishName) {
             return question;
