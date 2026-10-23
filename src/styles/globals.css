@@ -111,6 +111,22 @@ div.leaflet-control-attribution.leaflet-control {
         @apply hidden;
     }
 
+    /* Satellite view: eliminated areas darker, edges with a light outline */
+    .satellite-map path.elimination-mask {
+        fill: #0f172a;
+        fill-opacity: 0.55;
+        stroke: #ffffff;
+        stroke-opacity: 0.9;
+    }
+
+    /* Fullscreen shows just the map and its corner buttons (the Netlify badge too is hidden) */
+    :root:fullscreen .bottom-buttons,
+    :root:fullscreen .leaflet-control-attribution,
+    :root:fullscreen #nl-badge-frame,
+    :root:fullscreen #nl-hud-frame {
+        display: none !important;
+    }
+
     .busy-indicator {
         opacity: 0;
         animation: busy-fade-in 0.2s ease-out 0.15s forwards;

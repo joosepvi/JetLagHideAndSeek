@@ -13,9 +13,7 @@ import {
     additionalMapGeoLocations,
     allowGooglePlusCodes,
     alwaysUsePastebin,
-    animateMapMovements,
     autoSave,
-    autoZoom,
     baseTileLayer,
     customInitPreference,
     customPresets,
@@ -81,8 +79,6 @@ export const OptionDrawers = ({ className }: { className?: string }) => {
     const $defaultCustomQuestions = useStore(defaultCustomQuestions);
     const $allowGooglePlusCodes = useStore(allowGooglePlusCodes);
     const $defaultUnit = useStore(defaultUnit);
-    const $animateMapMovements = useStore(animateMapMovements);
-    const $autoZoom = useStore(autoZoom);
     const $hiderMode = useStore(hiderMode);
     const $autoSave = useStore(autoSave);
     const $hidingZone = useStore(hidingZone);
@@ -682,19 +678,6 @@ export const OptionDrawers = ({ className }: { className?: string }) => {
                             <Separator className="bg-slate-300 w-[280px]" />
                             <div className="flex flex-row items-center gap-2">
                                 <label className="text-2xl font-semibold font-poppins">
-                                    Animate map movements?
-                                </label>
-                                <Checkbox
-                                    checked={$animateMapMovements}
-                                    onCheckedChange={() => {
-                                        animateMapMovements.set(
-                                            !$animateMapMovements,
-                                        );
-                                    }}
-                                />
-                            </div>
-                            <div className="flex flex-row items-center gap-2">
-                                <label className="text-2xl font-semibold font-poppins">
                                     Force Pastebin for sharing?
                                 </label>
                                 <Checkbox
@@ -742,17 +725,6 @@ export const OptionDrawers = ({ className }: { className?: string }) => {
                                     checked={$autoSave}
                                     onCheckedChange={() =>
                                         autoSave.set(!$autoSave)
-                                    }
-                                />
-                            </div>
-                            <div className="flex flex-row items-center gap-2">
-                                <label className="text-2xl font-semibold font-poppins">
-                                    Auto zoom?
-                                </label>
-                                <Checkbox
-                                    checked={$autoZoom}
-                                    onCheckedChange={() =>
-                                        autoZoom.set(!$autoZoom)
                                     }
                                 />
                             </div>

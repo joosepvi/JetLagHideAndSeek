@@ -17,8 +17,6 @@ import {
     SidebarMenuItem,
 } from "@/components/ui/sidebar-r";
 import {
-    animateMapMovements,
-    autoZoom,
     disabledStations,
     displayHidingZones,
     displayHidingZonesOptions,
@@ -61,6 +59,7 @@ import {
 
 import { yieldToPaint } from "./BusyIndicator";
 import { getPointsRenderer, raisePlaceIcons } from "./mapPoints";
+import { satelliteMap } from "./SatelliteToggle";
 import { Checkbox } from "./ui/checkbox";
 import {
     Command,
@@ -78,6 +77,21 @@ import { MENU_ITEM_CLASSNAME } from "./ui/sidebar-l";
 import { UnitSelect } from "./UnitSelect";
 
 let buttonJustClicked = false;
+
+const zoneStyle = (): L.PathOptions =>
+    satelliteMap.get()
+        ? {
+              color: "#a3e635",
+              weight: 1.4,
+              fillColor: "#a3e635",
+              fillOpacity: 0.12,
+          }
+        : {
+              color: "green",
+              weight: 0.8,
+              fillColor: "green",
+              fillOpacity: 0.06,
+          };
 
 export const ZoneSidebar = () => {
     const $displayHidingZones = useStore(displayHidingZones);
@@ -101,6 +115,17 @@ export const ZoneSidebar = () => {
     const isStationSearchActive = stationSearch.trim().length > 0;
     const setStations = trainStations.set;
     const sidebarRef = useRef<HTMLDivElement>(null);
+
+    // Satellite view: zones need a brighter green to show on dark imagery
+    useEffect(
+        () =>
+            satelliteMap.subscribe(() =>
+                map?.eachLayer((layer: any) => {
+                    if (layer.hidingZones) layer.setStyle(zoneStyle());
+                }),
+            ),
+        [map],
+    );
 
     const removeHidingZones = () => {
         if (!map) return;
@@ -130,12 +155,7 @@ export const ZoneSidebar = () => {
             renderer: ((map as any)._zonesRenderer ??= L.canvas({
                 padding: 0.3,
             })),
-            style: {
-                color: "green",
-                weight: 0.8,
-                fillColor: "green",
-                fillOpacity: 0.06,
-            },
+            style: zoneStyle(),
             onEachFeature: nonOverlappingStations
                 ? (feature, layer) => {
                       layer.on("click", async () => {
@@ -962,13 +982,6 @@ async function selectionProcess(
     $questionFinishedMapData: any,
     $hidingRadius: number,
 ) {
-    const bbox = turf.bbox(station);
-
-    const bounds: [[number, number], [number, number]] = [
-        [bbox[1], bbox[0]],
-        [bbox[3], bbox[2]],
-    ];
-
     let mapData: any = turf.featureCollection([
         safeUnion(
             turf.featureCollection([
@@ -1212,14 +1225,6 @@ async function selectionProcess(
     }
 
     showGeoJSON(mapData);
-
-    if (autoZoom.get()) {
-        if (animateMapMovements.get()) {
-            map?.flyToBounds(bounds);
-        } else {
-            map?.fitBounds(bounds);
-        }
-    }
 
     const element: HTMLDivElement | null = document.querySelector(
         `[data-station-id="${station.properties.properties.id}"]`,

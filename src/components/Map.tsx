@@ -12,8 +12,6 @@ import { toast } from "react-toastify";
 import {
     additionalMapGeoLocations,
     addQuestion,
-    animateMapMovements,
-    autoZoom,
     baseTileLayer,
     followMe,
     hiderMode,
@@ -33,12 +31,18 @@ import { cn } from "@/lib/utils";
 import { applyQuestionsToMapGeoData, holedMask } from "@/maps";
 import { hiderifyQuestion } from "@/maps";
 import { clearCache, determineMapBoundaries } from "@/maps/api";
+import tallinnBoundary from "@/maps/api/tallinn.json";
 
 import { yieldToPaint } from "./BusyIndicator";
 import { CoastlineOverlay } from "./CoastlineOverlay";
 import { DraggableMarkers } from "./DraggableMarkers";
 import { LeafletFullScreenButton } from "./LeafletFullScreenButton";
 import { PolygonDraw } from "./PolygonDraw";
+import {
+    satelliteMap,
+    SatelliteTiles,
+    SatelliteToggleButton,
+} from "./SatelliteToggle";
 import {
     MatchingPlaceMarkers,
     TentaclePlaceMarkers,
@@ -125,6 +129,7 @@ export const Map = ({ className }: { className?: string }) => {
     const $mapGeoLocation = useStore(mapGeoLocation);
     const $questions = useStore(questions);
     const $baseTileLayer = useStore(baseTileLayer);
+    const $satelliteMap = useStore(satelliteMap);
     const $thunderforestApiKey = useStore(thunderforestApiKey);
     const $hiderMode = useStore(hiderMode);
     const $isLoading = useStore(isLoading);
@@ -141,7 +146,7 @@ export const Map = ({ className }: { className?: string }) => {
         [],
     );
 
-    const refreshQuestions = async (focus: boolean = false) => {
+    const refreshQuestions = async () => {
         if (!map) return;
 
         if ($isLoading) return;
@@ -214,26 +219,14 @@ export const Map = ({ className }: { className?: string }) => {
                 }
             });
 
-            const g = L.geoJSON(mapGeoData);
+            const g = L.geoJSON(mapGeoData, {
+                style: { className: "elimination-mask" },
+            });
             // @ts-expect-error This is a check such that only this type of layer is removed
             g.eliminationGeoJSON = true;
             g.addTo(map);
 
             questionFinishedMapData.set(mapGeoData);
-
-            if (autoZoom.get() && focus) {
-                const bbox = turf.bbox(holedMask(mapGeoData) as any);
-                const bounds = [
-                    [bbox[1], bbox[0]],
-                    [bbox[3], bbox[2]],
-                ];
-
-                if (animateMapMovements.get()) {
-                    map.flyToBounds(bounds as any);
-                } else {
-                    map.fitBounds(bounds as any);
-                }
-            }
         } catch (error) {
             console.log(error);
 
@@ -246,11 +239,17 @@ export const Map = ({ className }: { className?: string }) => {
         }
     };
 
+    // The map opens on Tallinn and then stays where the player puts it
+    const [w, s, e, n] = turf.bbox(tallinnBoundary as any);
+    const tallinnBounds: L.LatLngBoundsExpression = [
+        [s, w],
+        [n, e],
+    ];
+
     const displayMap = useMemo(
         () => (
             <MapContainer
-                center={$mapGeoLocation.geometry.coordinates}
-                zoom={5}
+                bounds={tallinnBounds}
                 // No +/- buttons: zoom with scroll or pinch
                 zoomControl={false}
                 className={cn("w-[500px] h-[500px]", className)}
@@ -376,7 +375,11 @@ export const Map = ({ className }: { className?: string }) => {
                     },
                 ]}
             >
-                {getTileLayer($baseTileLayer, $thunderforestApiKey)}
+                {$satelliteMap ? (
+                    <SatelliteTiles />
+                ) : (
+                    getTileLayer($baseTileLayer, $thunderforestApiKey)
+                )}
                 <TentaclePlaceMarkers />
                 <MatchingPlaceMarkers />
                 <CoastlineOverlay />
@@ -384,19 +387,20 @@ export const Map = ({ className }: { className?: string }) => {
                 <div className="leaflet-top leaflet-right">
                     <div className="leaflet-control flex-col flex gap-2">
                         <LeafletFullScreenButton />
+                        <SatelliteToggleButton />
                     </div>
                 </div>
                 <PolygonDraw />
                 <ScaleControl position="bottomleft" />
             </MapContainer>
         ),
-        [map, $baseTileLayer, $thunderforestApiKey],
+        [map, $baseTileLayer, $thunderforestApiKey, $satelliteMap],
     );
 
     useEffect(() => {
         if (!map) return;
 
-        refreshQuestions(true);
+        refreshQuestions();
     }, [$questions, map, $hiderMode]);
 
     useEffect(() => {
@@ -411,7 +415,7 @@ export const Map = ({ className }: { className?: string }) => {
             });
             if (layerCount > 1) {
                 console.log("Too many layers, refreshing...");
-                refreshQuestions(false);
+                refreshQuestions();
             }
         }, 1000);
 

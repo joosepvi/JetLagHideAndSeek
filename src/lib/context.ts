@@ -172,14 +172,6 @@ export const includeDefaultStations = persistentAtom<boolean>(
         decode: JSON.parse,
     },
 );
-export const animateMapMovements = persistentAtom<boolean>(
-    "animateMapMovements",
-    false,
-    {
-        encode: JSON.stringify,
-        decode: JSON.parse,
-    },
-);
 // Small game hiding zone: 1/4 mile ≈ 0.4 km
 export const hidingRadius = persistentAtom<number>("hidingRadius", 0.4, {
     encode: JSON.stringify,
@@ -342,10 +334,6 @@ export const planningModeEnabled = persistentAtom<boolean>(
         decode: JSON.parse,
     },
 );
-export const autoZoom = persistentAtom<boolean>("autoZoom", true, {
-    encode: JSON.stringify,
-    decode: JSON.parse,
-});
 
 export const isLoading = atom<boolean>(false);
 // Extra work that shows the busy indicator without blocking other updates (e.g. hiding zone selection)
