@@ -20,24 +20,24 @@ import {
 } from "@/maps/schema";
 
 export const mapGeoLocation = persistentAtom<OpenStreetMap>(
-    "mapGeoLocation",
+    "mapGeoLocationTallinn",
     {
         type: "Feature",
         properties: {
             osm_type: "R",
-            osm_id: 175905,
+            osm_id: 2164745,
             osm_key: "place",
             osm_value: "city",
             type: "city",
-            name: "New York",
-            state: "New York",
-            country: "United States",
-            countrycode: "US",
-            extent: [40.91763, -74.258843, 40.476578, -73.700233],
+            name: "Tallinn",
+            state: "Harju County",
+            country: "Estonia",
+            countrycode: "EE",
+            extent: [59.5915769, 24.55017, 59.3518076, 24.9262831],
         },
         geometry: {
             type: "Point",
-            coordinates: [40.7127281, -74.0060152],
+            coordinates: [59.437242, 24.7572693],
         },
     },
     {
@@ -88,7 +88,7 @@ export const questionModified = (..._: any[]) => {
 
 export const leafletMapContext = atom<Map | null>(null);
 
-export const defaultUnit = persistentAtom<Units>("defaultUnit", "miles");
+export const defaultUnit = persistentAtom<Units>("defaultUnit", "kilometers");
 export const hiderMode = persistentAtom<
     | false
     | {
@@ -176,7 +176,7 @@ export const hidingRadius = persistentAtom<number>("hidingRadius", 0.5, {
 });
 export const hidingRadiusUnits = persistentAtom<Units>(
     "hidingRadiusUnits",
-    "miles",
+    "kilometers",
     {
         encode: JSON.stringify,
         decode: JSON.parse,

@@ -11,7 +11,6 @@ import {
     overpassHost,
     polyGeoJSON,
 } from "@/lib/context";
-import { safeUnion } from "@/maps/geo-utils";
 
 import { cacheFetch, determineCache } from "./cache";
 import { LOCATION_FIRST_TAG, OVERPASS_HOSTS } from "./constants";
@@ -21,6 +20,7 @@ import type {
     HomeGameMeasuringQuestions,
     QuestionSpecificLocation,
 } from "./types";
+import tallinnBoundary from "./tallinn.json";
 import { CacheType } from "./types";
 
 type TentacleLocationQuery = Pick<
@@ -172,7 +172,7 @@ out geom;
 
 export const fetchCoastline = async () => {
     const response = await cacheFetch(
-        import.meta.env.BASE_URL + "/coastline50.geojson",
+        import.meta.env.BASE_URL.replace(/\/$/, "") + "/coastline50.geojson",
         "Fetching coastline data...",
         CacheType.PERMANENT_CACHE,
     );
@@ -396,54 +396,9 @@ export const nearestToQuestion = async (
     return turf.nearestPoint(questionPoint, instances as any);
 };
 
+// Hardcoded Tallinn boundary (OSM relation 2164745)
 export const determineMapBoundaries = async () => {
-    const mapGeoDatum = await Promise.all(
-        [
-            {
-                location: mapGeoLocation.get(),
-                added: true,
-                base: true,
-            },
-            ...additionalMapGeoLocations.get(),
-        ].map(async (location) => ({
-            added: location.added,
-            data: await determineGeoJSON(
-                location.location.properties.osm_id.toString(),
-                location.location.properties.osm_type,
-            ),
-        })),
-    );
-
-    let mapGeoData = turf.featureCollection([
-        safeUnion(
-            turf.featureCollection(
-                mapGeoDatum
-                    .filter((x) => x.added)
-                    .flatMap((x) => x.data.features),
-            ) as any,
-        ),
-    ]);
-
-    const differences = mapGeoDatum.filter((x) => !x.added).map((x) => x.data);
-
-    if (differences.length > 0) {
-        mapGeoData = turf.featureCollection([
-            turf.difference(
-                turf.featureCollection([
-                    mapGeoData.features[0],
-                    ...differences.flatMap((x) => x.features),
-                ]),
-            )!,
-        ]);
-    }
-
-    if (turf.coordAll(mapGeoData).length > 10000) {
-        turf.simplify(mapGeoData, {
-            tolerance: 0.0005,
-            highQuality: true,
-            mutate: true,
-        });
-    }
-
-    return turf.combine(mapGeoData) as FeatureCollection<MultiPolygon>;
+    return turf.combine(
+        structuredClone(tallinnBoundary) as FeatureCollection<MultiPolygon>,
+    ) as FeatureCollection<MultiPolygon>;
 };

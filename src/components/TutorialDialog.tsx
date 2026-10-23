@@ -99,62 +99,6 @@ const tutorialSteps: TutorialStep[] = [
         position: "center",
     },
     {
-        title: "Location Setup: Place Picker",
-        content: (
-            <>
-                The Place Picker allows you to define the game area based on
-                presets. Click the search box to begin exploring locations.
-                <br />
-                <br />
-                <strong>Supported Location Types:</strong>
-                <br />• Cities, towns, and neighborhoods
-                <br />• Administrative regions (countries, states, prefectures)
-                <br />• Geographic features (islands, parks)
-            </>
-        ),
-        targetSelector: '[data-tutorial-id="place-picker"]',
-        position: "bottom",
-    },
-    {
-        title: "Location Management: Add, Subtract, Remove",
-        content: (
-            <>
-                Once you search for locations, this menu shows powerful
-                management options:
-                <br />
-                <br />
-                <strong>Adding Locations (+ button):</strong> Expands your play
-                area by including the selected region
-                <br />
-                <br />
-                <strong>Subtracting Locations (- button):</strong> Creates
-                &ldquo;holes&rdquo; in your play area by excluding specific
-                regions. Perfect for removing water bodies, restricted areas, or
-                creating complex boundaries.
-                <br />
-                <br />
-                <strong>Removing Locations (X button):</strong> Completely
-                removes the location from your game
-                <br />
-                <br />
-                <strong>
-                    &ldquo;Clear Questions &amp; Cache&rdquo; button:
-                </strong>{" "}
-                Resets all questions and clears cached data when changing
-                locations significantly
-                <br />
-                <br />
-                <strong>
-                    &ldquo;Reuse Preset Locations&rdquo; button:
-                </strong>{" "}
-                Appears when custom polygons exist, allowing you to return to
-                the preset location mode
-            </>
-        ),
-        targetSelector: '[data-tutorial-id="place-picker-content"]',
-        position: "bottom",
-    },
-    {
         title: "Advanced Location Setup: Custom Polygon Drawing",
         content: (
             <>

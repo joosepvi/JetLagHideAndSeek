@@ -19,29 +19,29 @@ const { className } = Astro.props;
         <link
             rel="icon"
             type="image/x-icon"
-            href="https://taibeled.github.io/JetLagHideAndSeek/favicon.ico"
+            href="/favicon.ico"
         />
         <link
             rel="shortcut icon"
             type="image/x-icon"
-            href="https://taibeled.github.io/JetLagHideAndSeek/favicon.ico"
+            href="/favicon.ico"
         />
         <link
             rel="apple-touch-icon"
             sizes="180x180"
-            href="https://taibeled.github.io/JetLagHideAndSeek/apple-touch-icon.png"
+            href="/apple-touch-icon.png"
         />
         <link
             rel="icon"
             type="image/png"
             sizes="32x32"
-            href="https://taibeled.github.io/JetLagHideAndSeek/favicon-32x32.png"
+            href="/favicon-32x32.png"
         />
         <link
             rel="icon"
             type="image/png"
             sizes="16x16"
-            href="https://taibeled.github.io/JetLagHideAndSeek/favicon-16x16.png"
+            href="/favicon-16x16.png"
         />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -91,7 +91,7 @@ const { className } = Astro.props;
         <!-- Facebook Meta Tags -->
         <meta
             property="og:url"
-            content="https://taibeled.github.io/JetLagHideAndSeek/"
+            content={Astro.site?.href}
         />
         <meta property="og:type" content="website" />
         <meta
@@ -104,15 +104,15 @@ const { className } = Astro.props;
         />
         <meta
             property="og:image"
-            content="https://taibeled.github.io/JetLagHideAndSeek/JLIcon.png"
+            content={new URL("/JLIcon.png", Astro.site).href}
         />
 
         <!-- Twitter Meta Tags -->
         <meta name="twitter:card" content="summary_large_image" />
-        <meta property="twitter:domain" content="taibeled.github.io" />
+        <meta property="twitter:domain" content={Astro.site?.host} />
         <meta
             property="twitter:url"
-            content="https://taibeled.github.io/JetLagHideAndSeek/"
+            content={Astro.site?.href}
         />
         <meta
             name="twitter:title"
@@ -124,7 +124,7 @@ const { className } = Astro.props;
         />
         <meta
             name="twitter:image"
-            content="https://taibeled.github.io/JetLagHideAndSeek/JLIcon.png"
+            content={new URL("/JLIcon.png", Astro.site).href}
         />
 
         {pwaInfo && <Fragment set:html={pwaInfo.webManifest.linkTag} />}
