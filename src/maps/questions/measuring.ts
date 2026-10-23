@@ -10,7 +10,8 @@ import {
     trainStations,
 } from "@/lib/context";
 import {
-    findTallinnZone,
+    findTallinnBorder,
+    tallinnLakeShores,
     getTallinnPlaces,
     nearestToQuestion,
     TALLINN_AIRPORTS,
@@ -29,7 +30,9 @@ import type {
 } from "@/maps/schema";
 
 import {
+    bodyOfWaterZone,
     coastlineZone,
+    linesNear,
     isImpossibleCloser,
     nearestCoastline,
     removeWater,
@@ -46,16 +49,9 @@ export const findAdminZoneInfo = _.memoize(
         lng: number,
         adminLevel: 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10,
     ): Promise<AdminZoneInfo | null> => {
-        // Built-in Tallinn districts (9) and subdistricts (10)
-        const boundary = findTallinnZone(lat, lng, adminLevel);
-
-        if (!boundary) {
-            return null;
-        }
-
-        const name = boundary.properties.name ?? "Unknown";
-
-        return { name, boundary };
+        // Built-in borders (see BORDER_LEVELS)
+        const found = findTallinnBorder(lat, lng, adminLevel);
+        return found ? { name: found.name, boundary: found.border } : null;
     },
     (lat, lng, adminLevel) =>
         `${lat.toFixed(6)},${lng.toFixed(6)},${adminLevel}`,
@@ -66,31 +62,44 @@ export const determineMeasuringBoundary = async (
 ) => {
     switch (question.type) {
         case "admin-measure": {
-            const adminLevel = (question as any).cat?.adminLevel ?? 9;
-            const zoneInfo = await findAdminZoneInfo(
+            const adminLevel = (question as any).cat?.adminLevel ?? 2;
+            const found = findTallinnBorder(
                 question.lat,
                 question.lng,
                 adminLevel,
             );
 
-            if (!zoneInfo) {
-                toast.error("No admin boundary found at this location");
-                return [turf.multiPolygon([])];
+            if (!found) {
+                toast.error("No border found at this location");
+                return false;
             }
 
             // Store the zone name for display
             if (!(question as any).cat) {
                 (question as any).cat = { adminLevel };
             }
-            (question as any).cat.zoneName = zoneInfo.name;
+            (question as any).cat.zoneName = found.name;
 
-            // Convert the polygon to its outline (the border)
-            const outline = turf.polygonToLine(zoneInfo.boundary);
-            return [outline];
+            return [found.border];
         }
         case "coastline":
             // Handled separately (see coastline.ts)
             return false;
+        case "body_of_water": {
+            // Nearest shore of the sea or one of the listed lakes and ponds. Only sea
+            // shore that can reach the play area within the seeker's distance is used.
+            const seaMeters = nearestCoastline(
+                question.lng,
+                question.lat,
+            ).meters;
+            const sea = linesNear(seaMeters + 50).features.map(
+                (line) => line.geometry.coordinates,
+            );
+            return [
+                tallinnLakeShores(),
+                ...(sea.length > 0 ? [turf.multiLineString(sea)] : []),
+            ];
+        }
         case "airport":
             // Airports and airstrips around Tallinn
             return [turf.combine(toPoints(TALLINN_AIRPORTS)).features[0]];
@@ -130,6 +139,9 @@ export const determineMeasuringBoundary = async (
 
 const bufferedDeterminer = _.memoize(
     async (question: MeasuringQuestion) => {
+        if (question.type === "body_of_water") {
+            return bodyOfWaterZone(question.lat, question.lng);
+        }
         if (question.type === "coastline") {
             return coastlineZone(
                 question.lat,
@@ -190,6 +202,13 @@ export const adjustPerMeasuring = async (
     }
 
     if (!buffer) return mapData;
+
+    // Nobody hides in the water
+    if (question.type === "body_of_water") {
+        return removeWater(
+            modifyMapData(mapData, buffer, question.hiderCloser),
+        );
+    }
 
     return modifyMapData(mapData, buffer, question.hiderCloser);
 };

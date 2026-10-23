@@ -322,9 +322,10 @@ const ordinaryMeasuringQuestionSchema = baseMeasuringQuestionSchema.extend({
     type: z
         .union([
             z.literal("coastline").describe("Coastline Question"),
+            z.literal("body_of_water").describe("Body of Water Question"),
             // Tallinn: no million-cities, high-speed rail, aquariums or mountains
             z.literal("airport").describe("Airport / Airfield Question"),
-            z.literal("admin-measure").describe("District Border Question"),
+            z.literal("admin-measure").describe("Border Question"),
             z.literal("zoo-full").describe("Zoo Question (Small+Medium Games)"),
             z
                 .literal("theme_park-full")

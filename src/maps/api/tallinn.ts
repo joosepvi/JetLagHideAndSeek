@@ -5,6 +5,7 @@ import * as turf from "@turf/turf";
 import type {
     Feature,
     FeatureCollection,
+    MultiLineString,
     MultiPolygon,
     Point,
     Polygon,
@@ -13,6 +14,8 @@ import type {
 import { polyGeoJSON } from "@/lib/context";
 
 import tallinnBoundary from "./tallinn.json";
+import tallinnBorders from "./tallinn-borders.json";
+import tallinnLakes from "./tallinn-lakes.json";
 import tallinnMatching from "./tallinn-matching.json";
 import tallinnPlaces from "./tallinn-places.json";
 import tallinnTransit from "./tallinn-transit.json";
@@ -89,6 +92,56 @@ export const TALLINN_ZONE_LEVELS = {
     9: "Linnaosa (district)",
     10: "Asum (subdistrict)",
 } as const;
+
+// Border question levels, as on the measuring cards. 9 and 10 are house rules for a
+// Tallinn-only game. Borders are lines between neighbours: Estonia's land border and
+// territorial sea limit (OSM), Harju maakond (OSM, sea area included), and Tallinn,
+// linnaosa and asum outlines without the parts along the sea shore.
+export const BORDER_LEVELS = {
+    2: "International border (Estonia)",
+    6: "1st admin division border (Harju maakond)",
+    7: "2nd admin division border (Tallinn)",
+    9: "Linnaosa border (house rule)",
+    10: "Asum border (house rule)",
+} as const;
+export type BorderLevel = keyof typeof BORDER_LEVELS;
+
+// Body of Water question: 23 lakes and ponds in and around Tallinn (names from the
+// place names register KNR, shapes from ETAK e_202_seisuveekogu_a), plus the sea shore
+// (added in measuring.ts). Rivers and streams are not included.
+let lakeShores: Feature<MultiLineString> | null = null;
+export const tallinnLakeShores = () =>
+    (lakeShores ??= turf.multiLineString(
+        tallinnLakes.features.flatMap((lake) =>
+            (lake.geometry.coordinates as number[][][]).map((ring) => ring),
+        ),
+    ));
+
+export const findTallinnBorder = (
+    lat: number,
+    lng: number,
+    level: number,
+): { name: string; border: Feature<MultiLineString> } | null => {
+    const borders = tallinnBorders as any;
+    const fixed = {
+        2: borders.international,
+        6: borders.county,
+        7: borders.municipality,
+    }[level as 2 | 6 | 7];
+    if (fixed) return { name: fixed.properties.name, border: fixed };
+    const zone = findTallinnZone(lat, lng, level);
+    if (!zone) return null;
+    const name = zone.properties.name;
+    const geometry = (level === 9 ? borders.districts : borders.subdistricts)[
+        name
+    ];
+    // A zone whose whole outline is shore has no border with a neighbour
+    if (!geometry || geometry.coordinates.length === 0) return null;
+    return {
+        name,
+        border: turf.feature(geometry, { name }) as Feature<MultiLineString>,
+    };
+};
 
 const zonesFor = (adminLevel: number): Zone[] | null => {
     if (adminLevel === 9) return tallinnMatching.districts.features as Zone[];

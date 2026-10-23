@@ -24,7 +24,7 @@ import {
     triggerLocalRefresh,
 } from "@/lib/context";
 import { cn } from "@/lib/utils";
-import { TALLINN_ZONE_LEVELS } from "@/maps/api";
+import { BORDER_LEVELS } from "@/maps/api";
 import {
     determineMeasuringBoundary,
     findAdminZoneInfo,
@@ -73,14 +73,14 @@ export const MeasuringQuestionComponent = ({
                 <>
                     <SidebarMenuItem className={MENU_ITEM_CLASSNAME}>
                         <Select
-                            trigger="Zone"
-                            options={TALLINN_ZONE_LEVELS}
+                            trigger="Border"
+                            options={BORDER_LEVELS}
                             value={(
-                                (data as any).cat?.adminLevel ?? 9
+                                (data as any).cat?.adminLevel ?? 2
                             ).toString()}
                             onValueChange={(value) => {
                                 if (!(data as any).cat) {
-                                    (data as any).cat = { adminLevel: 9 };
+                                    (data as any).cat = { adminLevel: 2 };
                                 }
                                 (data as any).cat.adminLevel = parseInt(
                                     value,
@@ -305,7 +305,7 @@ export const MeasuringQuestionComponent = ({
                             return;
                         }
                         if (value === "admin-measure" && !(data as any).cat) {
-                            (data as any).cat = { adminLevel: 9 };
+                            (data as any).cat = { adminLevel: 2 };
                         }
                         data.type = value;
                         questionModified();
@@ -364,7 +364,7 @@ export const MeasuringQuestionComponent = ({
 const AdminZoneNameDisplay = ({ data }: { data: MeasuringQuestion }) => {
     useStore(triggerLocalRefresh);
 
-    const adminLevel = (data as any).cat?.adminLevel ?? 9;
+    const adminLevel = (data as any).cat?.adminLevel ?? 2;
     const zoneInfo = use(findAdminZoneInfo(data.lat, data.lng, adminLevel));
 
     // Update the zone name in the data
@@ -380,14 +380,14 @@ const AdminZoneNameDisplay = ({ data }: { data: MeasuringQuestion }) => {
     if (!zoneInfo) {
         return (
             <div className="flex items-center justify-center w-full h-[3rem] text-muted-foreground text-sm">
-                No zone found
+                No border found
             </div>
         );
     }
 
     return (
         <div className="flex flex-col items-center w-full h-[3rem]">
-            <Label className="text-xs text-muted-foreground">Zone</Label>
+            <Label className="text-xs text-muted-foreground">Border of</Label>
             <span className="font-medium text-sm truncate max-w-full">
                 {zoneInfo.name}
             </span>

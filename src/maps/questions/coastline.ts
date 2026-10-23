@@ -11,6 +11,7 @@ import type {
     Polygon,
 } from "geojson";
 
+import { tallinnLakeShores } from "@/maps/api";
 import tallinnBoundary from "@/maps/api/tallinn.json";
 import tallinnCoast from "@/maps/api/tallinn-coast.json";
 import { arcBuffer } from "@/maps/geo-utils";
@@ -98,7 +99,7 @@ const nearWater = () => {
 };
 
 // Only coastline that can reach the play area within the given distance matters
-const linesNear = (meters: number) => {
+export const linesNear = (meters: number) => {
     const pad = meters / 1000 / 111 + 0.005; // degrees latitude, generous
     const padLng = pad / Math.cos((59.43 * Math.PI) / 180);
     const [w, s, e, n] = PLAY_BBOX;
@@ -156,6 +157,39 @@ export const coastlineZone = async (
     return (await arcBuffer(
         lines as FeatureCollection,
         radius,
+        "meters",
+        ARC_DEVIATION_M,
+    )) as Feature<Polygon | MultiPolygon>;
+};
+
+// Body of Water: the nearest shore of the sea or a listed lake, buffered by the
+// seeker's distance. Same speed-ups as the coastline (simplified lines, 5 m arcs).
+let cachedLakeLines: Feature<LineString>[] | null = null;
+const lakeLines = () =>
+    (cachedLakeLines ??= (
+        turf.flatten(tallinnLakeShores()).features as Feature<LineString>[]
+    ).map(
+        (line) =>
+            turf.simplify(line, {
+                tolerance: 0.00004,
+                highQuality: true,
+            }) as Feature<LineString>,
+    ));
+
+export const bodyOfWaterZone = async (lat: number, lng: number) => {
+    const point = turf.point([lng, lat]);
+    let meters = nearestCoastline(lng, lat).meters;
+    for (const line of lakeLines()) {
+        meters = Math.min(
+            meters,
+            turf.pointToLineDistance(point, line, { units: "meters" }),
+        );
+    }
+    if (meters <= 0) return null;
+    const lines = [...linesNear(meters).features, ...lakeLines()];
+    return (await arcBuffer(
+        turf.featureCollection(lines) as FeatureCollection,
+        meters,
         "meters",
         ARC_DEVIATION_M,
     )) as Feature<Polygon | MultiPolygon>;
