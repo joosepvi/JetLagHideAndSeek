@@ -14,6 +14,7 @@ import {
     allowGooglePlusCodes,
     alwaysUsePastebin,
     autoSave,
+    showAdminBorders,
     baseTileLayer,
     customInitPreference,
     customPresets,
@@ -81,6 +82,7 @@ export const OptionDrawers = ({ className }: { className?: string }) => {
     const $defaultUnit = useStore(defaultUnit);
     const $hiderMode = useStore(hiderMode);
     const $autoSave = useStore(autoSave);
+    const $showAdminBorders = useStore(showAdminBorders);
     const $hidingZone = useStore(hidingZone);
     const $planningMode = useStore(planningModeEnabled);
     const $baseTileLayer = useStore(baseTileLayer);
@@ -634,6 +636,17 @@ export const OptionDrawers = ({ className }: { className?: string }) => {
                                     checked={$autoSave}
                                     onCheckedChange={() =>
                                         autoSave.set(!$autoSave)
+                                    }
+                                />
+                            </div>
+                            <div className="flex flex-row items-center gap-2">
+                                <label className="text-2xl font-semibold font-poppins">
+                                    Show linnaosa and asum borders?
+                                </label>
+                                <Checkbox
+                                    checked={$showAdminBorders}
+                                    onCheckedChange={() =>
+                                        showAdminBorders.set(!$showAdminBorders)
                                     }
                                 />
                             </div>

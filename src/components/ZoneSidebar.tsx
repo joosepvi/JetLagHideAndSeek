@@ -28,9 +28,9 @@ import {
     isLoading,
     leafletMapContext,
     planningModeEnabled,
+    questionAreas,
     questionFinishedMapData,
     questions,
-    remainingArea,
     trainStations,
 } from "@/lib/context";
 import { cn } from "@/lib/utils";
@@ -88,6 +88,13 @@ import { UnitSelect } from "./UnitSelect";
 
 let buttonJustClicked = false;
 
+const zonesPane = (map: L.Map) => {
+    if (!map.getPane("hidingZones")) {
+        map.createPane("hidingZones").style.zIndex = "450";
+    }
+    return "hidingZones";
+};
+
 const zoneStyle = (): L.PathOptions =>
     satelliteMap.get()
         ? {
@@ -107,6 +114,7 @@ export const ZoneSidebar = () => {
     const $displayHidingZones = useStore(displayHidingZones);
     const $displayStopPoints = useStore(displayStopPoints);
     const $questionFinishedMapData = useStore(questionFinishedMapData);
+    const $questionAreas = useStore(questionAreas);
     const $displayHidingZonesOptions = useStore(displayHidingZonesOptions);
     const $displayHidingZonesStyle = useStore(displayHidingZonesStyle);
     const $hidingRadius = useStore(hidingRadius);
@@ -183,10 +191,13 @@ export const ZoneSidebar = () => {
         const geoJsonLayer = L.geoJSON(geoJSONData, {
             // Zones never catch clicks, so the stop points underneath stay clickable
             interactive: false,
-            // Canvas: up to ~1100 circles are much cheaper to draw than SVG on phones
+            // Canvas: up to ~1100 circles are much cheaper to draw than SVG on phones.
+            // Own pane above the shading of eliminated areas (overlay pane, 400) and
+            // below the stop points (590), so zones are never covered by the shading.
             // @ts-expect-error renderer is passed on to each vector layer
             renderer: ((map as any)._zonesRenderer ??= L.canvas({
                 padding: 0.3,
+                pane: zonesPane(map),
             })),
             style: zoneStyle(),
             onEachFeature: nonOverlappingStations
@@ -337,12 +348,12 @@ export const ZoneSidebar = () => {
                 const marker = new ImageMarker([lat, lng], {
                     renderer: stopPointRenderer,
                     pane: "stopPoints",
-                    radius: 3.5,
+                    radius: 1.5,
                     stroke: false,
                     fill: false,
                     ...cross,
                 });
-                marker.bindTooltip(`${name} (välistatud)`, {
+                marker.bindTooltip(name, {
                     direction: "top",
                 });
                 dots.addLayer(marker);
@@ -413,7 +424,7 @@ export const ZoneSidebar = () => {
     useEffect(() => {
         if (!map) return;
         if (!($displayHidingZones || $displayStopPoints)) return;
-        if (!$questionFinishedMapData) return;
+        if (!$questionFinishedMapData && $questionAreas.length === 0) return;
 
         const classify = async () => {
             const types = toTransitTypes(displayHidingZonesOptions.get());
@@ -430,7 +441,7 @@ export const ZoneSidebar = () => {
                 .features as unknown as StationPlace[];
             const result = classifyStops(
                 places,
-                remainingArea.get(),
+                questionAreas.get(),
                 hidingRadius.get(),
                 hidingRadiusUnits.get(),
             );
@@ -540,6 +551,7 @@ export const ZoneSidebar = () => {
     }, [
         map,
         $questionFinishedMapData,
+        $questionAreas,
         $displayHidingZones,
         $displayStopPoints,
         $displayHidingZonesOptions,
@@ -1055,6 +1067,7 @@ async function selectionProcess(
             ]),
         ),
     ]);
+    const before = mapData;
 
     for (const question of questions.get()) {
         if (planningModeEnabled.get() && question.data.drag) {
@@ -1204,7 +1217,35 @@ async function selectionProcess(
         );
     }
 
-    showGeoJSON(mapData);
+    // The marked zone is always drawn as its full circle: the questions' shading
+    // already shows which parts of it are ruled out
+    showGeoJSON(turf.featureCollection([station]));
+
+    // Parts of the zone ruled out only here, by the home game place questions
+    // (nearest museum, park, ...), get the same shading as the rest of the map
+    if (mapData !== before) {
+        try {
+            const ruledOut = turf.difference(
+                turf.featureCollection([
+                    turf.intersect(
+                        turf.featureCollection([safeUnion(mapData), station]),
+                    )!,
+                    safeUnion(before),
+                ]),
+            );
+            if (ruledOut) {
+                const extra = L.geoJSON(ruledOut, {
+                    style: { className: "elimination-mask", stroke: false },
+                    interactive: false,
+                });
+                // @ts-expect-error Removed together with the hiding zones
+                extra.hidingZones = true;
+                extra.addTo(map);
+            }
+        } catch {
+            // Nothing extra ruled out
+        }
+    }
 
     const element: HTMLDivElement | null = document.querySelector(
         `[data-station-id="${station.properties.properties.id}"]`,

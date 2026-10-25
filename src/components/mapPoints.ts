@@ -43,34 +43,35 @@ export const ImageMarker = L.CircleMarker.extend({
     options: ImageMarkerOptions,
 ) => L.CircleMarker;
 
-// Small red dot with a white cross: a stop the hider can no longer be at
+// A ruled-out stop: the same small yellow dot as a possible stop (radius 1.5 px,
+// thin brown edge), crossed out with a red X
 let crossCanvas: HTMLCanvasElement | null = null;
 export const crossedStopImage = () => {
     if (!crossCanvas) {
-        const size = 10;
-        const scale = 3; // sharp on high-density screens
+        const size = 6;
+        const scale = 4; // sharp on high-density screens
         crossCanvas = document.createElement("canvas");
         crossCanvas.width = crossCanvas.height = size * scale;
         const ctx = crossCanvas.getContext("2d")!;
         ctx.scale(scale, scale);
-        ctx.fillStyle = "#dc2626";
-        ctx.strokeStyle = "#7f1d1d";
-        ctx.lineWidth = 0.8;
+        ctx.fillStyle = "#facc15";
+        ctx.strokeStyle = "#a16207";
+        ctx.lineWidth = 0.5;
         ctx.beginPath();
-        ctx.arc(size / 2, size / 2, size / 2 - 0.6, 0, Math.PI * 2);
+        ctx.arc(size / 2, size / 2, 1.5, 0, Math.PI * 2);
         ctx.fill();
         ctx.stroke();
-        ctx.strokeStyle = "#ffffff";
-        ctx.lineWidth = 1.4;
+        ctx.strokeStyle = "#dc2626";
+        ctx.lineWidth = 0.9;
         ctx.lineCap = "round";
         ctx.beginPath();
-        ctx.moveTo(3, 3);
-        ctx.lineTo(size - 3, size - 3);
-        ctx.moveTo(size - 3, 3);
-        ctx.lineTo(3, size - 3);
+        ctx.moveTo(0.8, size - 0.8);
+        ctx.lineTo(size - 0.8, 0.8);
+        ctx.moveTo(0.8, 0.8);
+        ctx.lineTo(size - 0.8, size - 0.8);
         ctx.stroke();
     }
-    return { image: crossCanvas, width: 7, height: 7 };
+    return { image: crossCanvas, width: 6, height: 6 };
 };
 
 // Place icons are kept above the stop points on the shared canvas (the topmost

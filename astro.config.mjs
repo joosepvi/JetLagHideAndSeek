@@ -41,6 +41,21 @@ export default defineConfig({
     devToolbar: {
         enabled: false,
     },
+    vite: {
+        // Dev server only: pre-bundle every ArcGIS module the app uses at start-up.
+        // Otherwise Vite finds them on the first page load, re-bundles, and the
+        // page keeps asking for chunks that no longer exist (stuck on "Laen kaarti…").
+        optimizeDeps: {
+            include: [
+                "@arcgis/core/core/units.js",
+                "@arcgis/core/geometry/Point.js",
+                "@arcgis/core/geometry/operators/geodesicBufferOperator.js",
+                "@arcgis/core/geometry/operators/geodeticDistanceOperator.js",
+                "@arcgis/core/geometry/support/jsonUtils.js",
+                "@arcgis/core/unionTypes.js",
+            ],
+        },
+    },
     site: process.env.URL ?? "http://localhost:4321",
     base: "/",
 });

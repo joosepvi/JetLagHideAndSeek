@@ -156,6 +156,10 @@ export const displayHidingZonesStyle = persistentAtom<
     "zones" | "stations" | "no-overlap" | "no-display"
 >("displayHidingZonesStyleTallinn", "no-overlap");
 export const questionFinishedMapData = atom<any>(null);
+// Each question's own answer area (where the hider was when answering it)
+export const questionAreas = atom<FeatureCollection<Polygon | MultiPolygon>[]>(
+    [],
+);
 // The area the hider can still be in (after all questions), for placing new pins
 export const remainingArea = atom<FeatureCollection<
     Polygon | MultiPolygon
@@ -225,6 +229,15 @@ export const hidingRadiusUnits = persistentAtom<Units>(
 export const disabledStations = persistentAtom<string[]>(
     "disabledStations",
     [],
+    {
+        encode: JSON.stringify,
+        decode: JSON.parse,
+    },
+);
+// Linnaosa and asum borders on the map (Options)
+export const showAdminBorders = persistentAtom<boolean>(
+    "showAdminBordersTallinn",
+    true,
     {
         encode: JSON.stringify,
         decode: JSON.parse,

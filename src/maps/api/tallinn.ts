@@ -358,3 +358,254 @@ export const trainStopPoints = () =>
             ),
         ),
     );
+
+// Linnaosa and asum borders for the always-visible map layer. Neighbours share their
+// border, so each edge would be drawn twice (slightly apart, as the shapes were
+// simplified separately): a segment is dropped when an already kept one runs within
+// a few metres of it. Asum edges on a linnaosa line are dropped too, so only the
+// stronger line shows there. Sea shore is left out (see tallinn-borders.json).
+type BorderLabel = { name: string; lat: number; lng: number };
+export type AdminBorderData = {
+    districtLines: [number, number][][];
+    asumLines: [number, number][][];
+    districtLabels: BorderLabel[];
+    asumLabels: BorderLabel[];
+};
+
+const SAME_LINE_M = 15;
+const KX = 111320 * Math.cos((59.43 * Math.PI) / 180);
+const KY = 110540;
+const CELL_M = 100;
+
+const segmentDistance = (
+    px: number,
+    py: number,
+    [x1, y1, x2, y2]: number[],
+) => {
+    const dx = x2 - x1;
+    const dy = y2 - y1;
+    const t =
+        dx === 0 && dy === 0
+            ? 0
+            : Math.max(
+                  0,
+                  Math.min(
+                      1,
+                      ((px - x1) * dx + (py - y1) * dy) / (dx * dx + dy * dy),
+                  ),
+              );
+    return Math.hypot(px - (x1 + t * dx), py - (y1 + t * dy));
+};
+
+// Kept segments (in metres), in a grid for quick "is there a line nearby" checks
+const segmentIndex = () => {
+    const cells = new Map<string, number[][]>();
+    const cellKeys = (x1: number, y1: number, x2: number, y2: number) => {
+        const keys: string[] = [];
+        for (
+            let cx = Math.floor((Math.min(x1, x2) - SAME_LINE_M) / CELL_M);
+            cx <= Math.floor((Math.max(x1, x2) + SAME_LINE_M) / CELL_M);
+            cx++
+        ) {
+            for (
+                let cy = Math.floor((Math.min(y1, y2) - SAME_LINE_M) / CELL_M);
+                cy <= Math.floor((Math.max(y1, y2) + SAME_LINE_M) / CELL_M);
+                cy++
+            ) {
+                keys.push(`${cx},${cy}`);
+            }
+        }
+        return keys;
+    };
+    return {
+        add(segment: number[]) {
+            for (const key of cellKeys(
+                segment[0],
+                segment[1],
+                segment[2],
+                segment[3],
+            )) {
+                const list = cells.get(key) ?? [];
+                list.push(segment);
+                cells.set(key, list);
+            }
+        },
+        // The whole segment (both ends and middle) lies along a kept line
+        covered(x1: number, y1: number, x2: number, y2: number) {
+            const near = (px: number, py: number) =>
+                (
+                    cells.get(
+                        `${Math.floor(px / CELL_M)},${Math.floor(py / CELL_M)}`,
+                    ) ?? []
+                ).some((s) => segmentDistance(px, py, s) <= SAME_LINE_M);
+            return (
+                near(x1, y1) &&
+                near(x2, y2) &&
+                near((x1 + x2) / 2, (y1 + y2) / 2)
+            );
+        },
+    };
+};
+
+// Adds every line, keeping only the stretches no kept line covers yet
+const keepNewStretches = (
+    lines: number[][][],
+    index: ReturnType<typeof segmentIndex>,
+) => {
+    const out: [number, number][][] = [];
+    for (const line of lines) {
+        let current: [number, number][] = [];
+        for (let i = 0; i < line.length - 1; i++) {
+            const [ax, ay] = line[i];
+            const [bx, by] = line[i + 1];
+            const seg = [ax * KX, ay * KY, bx * KX, by * KY];
+            if (index.covered(seg[0], seg[1], seg[2], seg[3])) {
+                if (current.length > 1) out.push(current);
+                current = [];
+                continue;
+            }
+            if (current.length === 0) current.push([ax, ay]);
+            current.push([bx, by]);
+        }
+        if (current.length > 1) out.push(current);
+        // Indexed after the whole line, so a line never hides its own parts
+        for (let i = 0; i < line.length - 1; i++) {
+            index.add([
+                line[i][0] * KX,
+                line[i][1] * KY,
+                line[i + 1][0] * KX,
+                line[i + 1][1] * KY,
+            ]);
+        }
+    }
+    return out;
+};
+
+// A point inside the zone for its name (the centre, unless that falls outside a
+// concave shape)
+const labelPoint = (zone: Zone): BorderLabel => {
+    // On the largest part (Kesklinna's centre would otherwise drift towards Aegna)
+    const largest = (turf.flatten(zone).features as Feature<Polygon>[]).reduce(
+        (a, b) => (turf.area(b) > turf.area(a) ? b : a),
+    );
+    let point = turf.centerOfMass(largest);
+    if (!turf.booleanPointInPolygon(point, largest)) {
+        point = turf.pointOnFeature(largest);
+    }
+    const [lng, lat] = point.geometry.coordinates;
+    return { name: zone.properties.name, lat, lng };
+};
+
+// A real border runs between two zones, or along Tallinn's land border with its
+// neighbours. Anything else left in the outlines is shore that the coast clean-up
+// missed (harbour piers, e.g. at the cruise terminal), and is dropped.
+const BORDER_NEAR_M = 25;
+const onlyRealBorders = (
+    byName: Record<string, MultiLineString>,
+    landBorder: number[][][],
+) => {
+    type Tagged = { seg: number[]; owner: string };
+    const cells = new Map<string, Tagged[]>();
+    const add = (seg: number[], owner: string) => {
+        for (
+            let cx = Math.floor(Math.min(seg[0], seg[2]) / CELL_M);
+            cx <= Math.floor(Math.max(seg[0], seg[2]) / CELL_M);
+            cx++
+        ) {
+            for (
+                let cy = Math.floor(Math.min(seg[1], seg[3]) / CELL_M);
+                cy <= Math.floor(Math.max(seg[1], seg[3]) / CELL_M);
+                cy++
+            ) {
+                const key = `${cx},${cy}`;
+                const list = cells.get(key) ?? [];
+                list.push({ seg, owner });
+                cells.set(key, list);
+            }
+        }
+    };
+    const toSegments = (line: number[][]) =>
+        line
+            .slice(1)
+            .map((b, i) => [
+                line[i][0] * KX,
+                line[i][1] * KY,
+                b[0] * KX,
+                b[1] * KY,
+            ]);
+    for (const [name, geometry] of Object.entries(byName)) {
+        for (const line of geometry.coordinates) {
+            toSegments(line).forEach((seg) => add(seg, name));
+        }
+    }
+    for (const line of landBorder) {
+        toSegments(line).forEach((seg) => add(seg, " land"));
+    }
+    // Is there a border of another zone (or the land border) next to this point?
+    const sharedAt = (px: number, py: number, self: string) => {
+        for (let dx = -1; dx <= 1; dx++) {
+            for (let dy = -1; dy <= 1; dy++) {
+                const list = cells.get(
+                    `${Math.floor(px / CELL_M) + dx},${Math.floor(py / CELL_M) + dy}`,
+                );
+                if (
+                    list?.some(
+                        ({ seg, owner }) =>
+                            owner !== self &&
+                            segmentDistance(px, py, seg) <= BORDER_NEAR_M,
+                    )
+                ) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    };
+
+    const kept: number[][][] = [];
+    for (const [name, geometry] of Object.entries(byName)) {
+        for (const line of geometry.coordinates) {
+            let current: number[][] = [];
+            for (let i = 0; i < line.length - 1; i++) {
+                const midX = ((line[i][0] + line[i + 1][0]) / 2) * KX;
+                const midY = ((line[i][1] + line[i + 1][1]) / 2) * KY;
+                if (sharedAt(midX, midY, name)) {
+                    if (current.length === 0) current.push(line[i]);
+                    current.push(line[i + 1]);
+                } else {
+                    if (current.length > 1) kept.push(current);
+                    current = [];
+                }
+            }
+            if (current.length > 1) kept.push(current);
+        }
+    }
+    return kept;
+};
+
+let adminBorderCache: AdminBorderData | null = null;
+export const adminBorderLines = (): AdminBorderData => {
+    if (adminBorderCache) return adminBorderCache;
+    const borders = tallinnBorders as any;
+    const landBorder = borders.municipality.geometry.coordinates;
+    const index = segmentIndex();
+    const districtLines = keepNewStretches(
+        onlyRealBorders(borders.districts, landBorder),
+        index,
+    );
+    const asumLines = keepNewStretches(
+        onlyRealBorders(borders.subdistricts, landBorder),
+        index,
+    );
+
+    return (adminBorderCache = {
+        districtLines,
+        asumLines,
+        districtLabels: (tallinnMatching.districts.features as Zone[]).map(
+            labelPoint,
+        ),
+        asumLabels: (tallinnMatching.subdistricts.features as Zone[]).map(
+            labelPoint,
+        ),
+    });
+};

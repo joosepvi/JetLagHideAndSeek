@@ -4,7 +4,12 @@ import "leaflet-contextmenu";
 
 import { useStore } from "@nanostores/react";
 import * as turf from "@turf/turf";
-import type { Feature, MultiPolygon, Polygon } from "geojson";
+import type {
+    Feature,
+    FeatureCollection,
+    MultiPolygon,
+    Polygon,
+} from "geojson";
 import * as L from "leaflet";
 import { useEffect, useMemo } from "react";
 import { MapContainer, ScaleControl, TileLayer } from "react-leaflet";
@@ -24,6 +29,7 @@ import {
     permanentOverlay,
     planningModeEnabled,
     polyGeoJSON,
+    questionAreas,
     questionFinishedMapData,
     remainingArea,
     questions,
@@ -32,13 +38,18 @@ import {
 } from "@/lib/context";
 import { thermometerEnd } from "@/lib/defaultPosition";
 import { cn } from "@/lib/utils";
-import { applyQuestionsToMapGeoData, holedMask } from "@/maps";
+import {
+    adjustMapGeoDataForQuestion,
+    applyQuestionsToMapGeoData,
+    holedMask,
+} from "@/maps";
 import { cleanArea, safeUnion } from "@/maps/geo-utils";
 import { hiderifyQuestion } from "@/maps";
 import { clearCache, determineMapBoundaries } from "@/maps/api";
 import tallinnBoundary from "@/maps/api/tallinn.json";
 
 import { yieldToPaint } from "./BusyIndicator";
+import { AdminBorders } from "./AdminBorders";
 import { CoastlineOverlay } from "./CoastlineOverlay";
 import { DraggableMarkers } from "./DraggableMarkers";
 import { LeafletFullScreenButton } from "./LeafletFullScreenButton";
@@ -221,6 +232,7 @@ export const Map = ({ className }: { className?: string }) => {
             }
         });
 
+        const playArea = mapGeoData;
         try {
             mapGeoData = await applyQuestionsToMapGeoData(
                 $questions,
@@ -234,12 +246,47 @@ export const Map = ({ className }: { className?: string }) => {
                 },
             );
 
+            // Each question's own answer area. The hider may move inside their hiding
+            // zone between questions, so stops are checked against these one by one
+            // (ZoneSidebar), not only against the shaded intersection.
+            const areas: FeatureCollection<Polygon | MultiPolygon>[] = [];
+            for (const question of $questions) {
+                if (question.data.hidden) continue;
+                if (planningModeEnabled.get() && question.data.drag) continue;
+                const area = await adjustMapGeoDataForQuestion(
+                    question,
+                    playArea,
+                );
+                // Unchanged: the question doesn't limit where the hider is
+                // (e.g. stop name or line questions, which filter stops directly)
+                if (area === playArea) continue;
+                const parts =
+                    area?.type === "FeatureCollection"
+                        ? area.features
+                        : area
+                          ? [area]
+                          : [];
+                const cleaned =
+                    parts.length > 0
+                        ? cleanArea(
+                              safeUnion(
+                                  turf.featureCollection(parts),
+                              ) as Feature<Polygon | MultiPolygon>,
+                          )
+                        : null;
+                areas.push(turf.featureCollection(cleaned ? [cleaned] : []));
+            }
+            // Set even when the answers leave no common area: a moving hider can
+            // still have answered them all from one hiding zone
+            questionAreas.set(areas);
+
             // Leftover slivers would show up as outlined holes in the shading
             const remaining = cleanArea(
                 safeUnion(mapGeoData as any) as Feature<Polygon | MultiPolygon>,
             );
             if (!remaining) throw new Error("No area left");
             remainingArea.set(turf.featureCollection([remaining]));
+
             mapGeoData = {
                 type: "FeatureCollection",
                 features: [holedMask(remaining)!],
@@ -415,6 +462,7 @@ export const Map = ({ className }: { className?: string }) => {
                     getTileLayer($baseTileLayer, $thunderforestApiKey)
                 )}
                 <TentaclePlaceMarkers />
+                <AdminBorders />
                 <QuestionPlaceMarkers />
                 <CoastlineOverlay />
                 <DraggableMarkers />

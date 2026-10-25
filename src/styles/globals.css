@@ -143,6 +143,39 @@ div.leaflet-control-attribution.leaflet-control {
         }
     }
 
+    /* Linnaosa and asum names (AdminBorders.tsx): plain text with a halo, no box */
+    .admin-label span {
+        position: absolute;
+        transform: translate(-50%, -50%);
+        white-space: nowrap;
+        pointer-events: none;
+        font-family: Poppins, sans-serif;
+        font-size: 11px;
+        line-height: 1;
+        text-shadow:
+            0 0 2px #fff,
+            0 0 3px #fff,
+            0 0 4px #fff;
+    }
+    .admin-label-district span {
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: #6d5b8f;
+    }
+    .admin-label-asum span {
+        font-size: 10.5px;
+        font-style: italic;
+        color: #7c6f9a;
+    }
+    .satellite-map .admin-label span {
+        color: rgba(255, 255, 255, 0.9);
+        text-shadow:
+            0 0 2px #1e1b4b,
+            0 0 3px #1e1b4b,
+            0 0 5px #1e1b4b;
+    }
+
     .busy-indicator {
         opacity: 0;
         animation: busy-fade-in 0.2s ease-out 0.15s forwards;

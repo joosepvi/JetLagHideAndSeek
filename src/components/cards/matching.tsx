@@ -125,9 +125,8 @@ export const MatchingQuestionComponent = ({
                         />
                     </SidebarMenuItem>
                     <span className="px-2 text-center text-orange-500">
-                        Pick the line. Same: only stops of that line stay
-                        possible. Different: its stops are ruled out. Lines come
-                        from peatus.ee (built-in copy offline).
+                        Pick the line. Lines come from peatus.ee (built-in copy
+                        offline).
                     </span>
                 </>
             );
@@ -484,8 +483,9 @@ const LinePicker = ({
         const nearLines = sortLines(nearest?.properties.lines ?? []);
         const result: Record<string, Record<string, string>> = {};
         if (nearest && nearLines.length > 0) {
-            result[`At your stop: ${nearest.properties.name}`] =
-                Object.fromEntries(nearLines.map((l) => [l, l]));
+            result["Märgitud punkti peatuses"] = Object.fromEntries(
+                nearLines.map((l) => [l, l]),
+            );
         }
         for (const line of allTransitLines(types)) {
             if (nearLines.includes(line)) continue;
