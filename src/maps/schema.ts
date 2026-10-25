@@ -213,6 +213,8 @@ export const tentacleQuestionSchema = z.union([
 const baseMatchingQuestionSchema = ordinaryBaseQuestionSchema.extend({
     same: z.boolean().default(true),
     lengthComparison: z.enum(["shorter", "longer", "same"]).optional(),
+    // Same line question: the line the seeker picked, e.g. "Bus 17", "Tram T4"
+    line: z.string().optional(),
 });
 
 const ordinaryMatchingQuestionSchema = baseMatchingQuestionSchema.extend({
@@ -294,7 +296,7 @@ const hidingZoneMatchingQuestionsSchema = baseMatchingQuestionSchema.extend({
         z
             .literal("same-length-station")
             .describe("Station Has Same Length Question"),
-        z.literal("same-train-line").describe("Station On Same Line Question"),
+        z.literal("same-train-line").describe("Same Line Question"),
     ]),
 });
 

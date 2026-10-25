@@ -1,5 +1,4 @@
 import { useStore } from "@nanostores/react";
-import * as turf from "@turf/turf";
 import React from "react";
 import { toast } from "react-toastify";
 
@@ -17,6 +16,10 @@ import {
     isLoading,
     leafletMapContext,
 } from "@/lib/context";
+import {
+    defaultQuestionPosition,
+    thermometerEnd,
+} from "@/lib/defaultPosition";
 
 export const AddQuestionDialog = ({
     children,
@@ -29,7 +32,7 @@ export const AddQuestionDialog = ({
     const runAddRadius = () => {
         const map = leafletMapContext.get();
         if (!map) return false;
-        const center = map.getCenter();
+        const center = defaultQuestionPosition();
         addQuestion({
             id: "radius",
             data: { lat: center.lat, lng: center.lng },
@@ -40,18 +43,13 @@ export const AddQuestionDialog = ({
     const runAddThermometer = () => {
         const map = leafletMapContext.get();
         if (!map) return false;
-        const center = map.getCenter();
-        const destination = turf.destination([center.lng, center.lat], 1, 90, {
-            units: "kilometers",
-        });
-
+        const center = defaultQuestionPosition();
         addQuestion({
             id: "thermometer",
             data: {
                 latA: center.lat,
-                lngB: center.lng,
-                latB: destination.geometry.coordinates[1],
-                lngA: destination.geometry.coordinates[0],
+                lngA: center.lng,
+                ...thermometerEnd(center.lat, center.lng),
             },
         });
 
@@ -61,7 +59,7 @@ export const AddQuestionDialog = ({
     const runAddTentacles = () => {
         const map = leafletMapContext.get();
         if (!map) return false;
-        const center = map.getCenter();
+        const center = defaultQuestionPosition();
         addQuestion({
             id: "tentacles",
             data: defaultCustomQuestions.get()
@@ -79,7 +77,7 @@ export const AddQuestionDialog = ({
     const runAddMatching = () => {
         const map = leafletMapContext.get();
         if (!map) return false;
-        const center = map.getCenter();
+        const center = defaultQuestionPosition();
         addQuestion({
             id: "matching",
             data: defaultCustomQuestions.get()
@@ -92,7 +90,7 @@ export const AddQuestionDialog = ({
     const runAddMeasuring = () => {
         const map = leafletMapContext.get();
         if (!map) return false;
-        const center = map.getCenter();
+        const center = defaultQuestionPosition();
         addQuestion({
             id: "measuring",
             data: defaultCustomQuestions.get()

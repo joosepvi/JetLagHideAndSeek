@@ -4,6 +4,7 @@ import "leaflet-contextmenu";
 
 import { useStore } from "@nanostores/react";
 import * as turf from "@turf/turf";
+import type { Feature, MultiPolygon, Polygon } from "geojson";
 import * as L from "leaflet";
 import { useEffect, useMemo } from "react";
 import { MapContainer, ScaleControl, TileLayer } from "react-leaflet";
@@ -16,6 +17,7 @@ import {
     followMe,
     hiderMode,
     isLoading,
+    lastGpsPosition,
     leafletMapContext,
     mapGeoJSON,
     mapGeoLocation,
@@ -23,12 +25,15 @@ import {
     planningModeEnabled,
     polyGeoJSON,
     questionFinishedMapData,
+    remainingArea,
     questions,
     thunderforestApiKey,
     triggerLocalRefresh,
 } from "@/lib/context";
+import { thermometerEnd } from "@/lib/defaultPosition";
 import { cn } from "@/lib/utils";
 import { applyQuestionsToMapGeoData, holedMask } from "@/maps";
+import { cleanArea, safeUnion } from "@/maps/geo-utils";
 import { hiderifyQuestion } from "@/maps";
 import { clearCache, determineMapBoundaries } from "@/maps/api";
 import tallinnBoundary from "@/maps/api/tallinn.json";
@@ -44,7 +49,7 @@ import {
     SatelliteToggleButton,
 } from "./SatelliteToggle";
 import {
-    MatchingPlaceMarkers,
+    QuestionPlaceMarkers,
     TentaclePlaceMarkers,
 } from "./TentaclePlaceMarkers";
 
@@ -132,7 +137,6 @@ export const Map = ({ className }: { className?: string }) => {
     const $satelliteMap = useStore(satelliteMap);
     const $thunderforestApiKey = useStore(thunderforestApiKey);
     const $hiderMode = useStore(hiderMode);
-    const $isLoading = useStore(isLoading);
     const $followMe = useStore(followMe);
     const $permanentOverlay = useStore(permanentOverlay);
     const map = useStore(leafletMapContext);
@@ -146,10 +150,33 @@ export const Map = ({ className }: { className?: string }) => {
         [],
     );
 
+    // One refresh at a time. A change made while one is running (e.g. a pin dropped
+    // mid-calculation) is not lost: the refresh runs again with the latest questions.
+    const refreshState = useMemo(
+        () => ({ running: false, pending: false }),
+        [],
+    );
     const refreshQuestions = async () => {
         if (!map) return;
+        if (refreshState.running) {
+            refreshState.pending = true;
+            return;
+        }
+        refreshState.running = true;
+        try {
+            do {
+                refreshState.pending = false;
+                await runRefresh();
+            } while (refreshState.pending);
+        } finally {
+            refreshState.running = false;
+        }
+    };
 
-        if ($isLoading) return;
+    const runRefresh = async () => {
+        if (!map) return;
+        const $questions = questions.get();
+        const $hiderMode = hiderMode.get();
 
         isLoading.set(true);
         await yieldToPaint();
@@ -207,9 +234,15 @@ export const Map = ({ className }: { className?: string }) => {
                 },
             );
 
+            // Leftover slivers would show up as outlined holes in the shading
+            const remaining = cleanArea(
+                safeUnion(mapGeoData as any) as Feature<Polygon | MultiPolygon>,
+            );
+            if (!remaining) throw new Error("No area left");
+            remainingArea.set(turf.featureCollection([remaining]));
             mapGeoData = {
                 type: "FeatureCollection",
-                features: [holedMask(mapGeoData!)!],
+                features: [holedMask(remaining)!],
             };
 
             map.eachLayer((layer: any) => {
@@ -219,20 +252,28 @@ export const Map = ({ className }: { className?: string }) => {
                 }
             });
 
+            // Shading without its own edges, plus one outline of the remaining area
             const g = L.geoJSON(mapGeoData, {
-                style: { className: "elimination-mask" },
+                style: { className: "elimination-mask", stroke: false },
+                interactive: false,
             });
             // @ts-expect-error This is a check such that only this type of layer is removed
             g.eliminationGeoJSON = true;
             g.addTo(map);
+            const outline = L.geoJSON(turf.polygonToLine(remaining) as any, {
+                style: { className: "elimination-outline", weight: 2 },
+                interactive: false,
+            });
+            // @ts-expect-error Removed together with the shading
+            outline.eliminationGeoJSON = true;
+            outline.addTo(map);
 
             questionFinishedMapData.set(mapGeoData);
         } catch (error) {
             console.log(error);
 
-            isLoading.set(false);
             if (document.querySelectorAll(".Toastify__toast").length === 0) {
-                return toast.error("No solutions found / error occurred");
+                toast.error("No solutions found / error occurred");
             }
         } finally {
             isLoading.set(false);
@@ -272,22 +313,15 @@ export const Map = ({ className }: { className?: string }) => {
                     {
                         text: "Add Thermometer",
                         callback: (e: any) => {
-                            const destination = turf.destination(
-                                [e.latlng.lng, e.latlng.lat],
-                                5,
-                                90,
-                                {
-                                    units: "miles",
-                                },
-                            );
-
                             addQuestion({
                                 id: "thermometer",
                                 data: {
                                     latA: e.latlng.lat,
                                     lngA: e.latlng.lng,
-                                    latB: destination.geometry.coordinates[1],
-                                    lngB: destination.geometry.coordinates[0],
+                                    ...thermometerEnd(
+                                        e.latlng.lat,
+                                        e.latlng.lng,
+                                    ),
                                 },
                             });
                         },
@@ -381,7 +415,7 @@ export const Map = ({ className }: { className?: string }) => {
                     getTileLayer($baseTileLayer, $thunderforestApiKey)
                 )}
                 <TentaclePlaceMarkers />
-                <MatchingPlaceMarkers />
+                <QuestionPlaceMarkers />
                 <CoastlineOverlay />
                 <DraggableMarkers />
                 <div className="leaflet-top leaflet-right">
@@ -402,25 +436,6 @@ export const Map = ({ className }: { className?: string }) => {
 
         refreshQuestions();
     }, [$questions, map, $hiderMode]);
-
-    useEffect(() => {
-        const intervalId = setInterval(async () => {
-            if (!map) return;
-            let layerCount = 0;
-            map.eachLayer((layer: any) => {
-                if (layer.eliminationGeoJSON) {
-                    // Hopefully only geoJSON layers
-                    layerCount++;
-                }
-            });
-            if (layerCount > 1) {
-                console.log("Too many layers, refreshing...");
-                refreshQuestions();
-            }
-        }, 1000);
-
-        return () => clearInterval(intervalId);
-    }, [map]);
 
     useEffect(() => {
         const handleFullscreenChange = () => {
@@ -464,6 +479,7 @@ export const Map = ({ className }: { className?: string }) => {
             (pos) => {
                 const lat = pos.coords.latitude;
                 const lng = pos.coords.longitude;
+                lastGpsPosition.set({ lat, lng, time: Date.now() });
                 if (followMeMarkerRef.current) {
                     followMeMarkerRef.current.setLatLng([lat, lng]);
                 } else {

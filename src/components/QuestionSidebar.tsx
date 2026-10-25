@@ -1,5 +1,6 @@
 import { useStore } from "@nanostores/react";
 import { SidebarCloseIcon } from "lucide-react";
+import { useEffect, useRef } from "react";
 
 import {
     Sidebar,
@@ -33,6 +34,21 @@ export const QuestionSidebar = () => {
     const $questions = useStore(questions);
     const $autoSave = useStore(autoSave);
     const $isLoading = useStore(isLoading);
+    const contentRef = useRef<HTMLDivElement>(null);
+    const questionCount = useRef($questions.length);
+
+    // A newly added question goes to the end of the list: scroll it into view
+    useEffect(() => {
+        const added = $questions.length > questionCount.current;
+        questionCount.current = $questions.length;
+        if (!added || !contentRef.current) return;
+        requestAnimationFrame(() =>
+            contentRef.current?.scrollTo({
+                top: contentRef.current.scrollHeight,
+                behavior: "smooth",
+            }),
+        );
+    }, [$questions.length]);
 
     return (
         <Sidebar>
@@ -45,7 +61,7 @@ export const QuestionSidebar = () => {
                     }}
                 />
             </div>
-            <SidebarContent>
+            <SidebarContent ref={contentRef}>
                 {$questions.map((question) => {
                     switch (question.id) {
                         case "radius":

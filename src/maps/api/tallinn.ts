@@ -18,21 +18,14 @@ import tallinnBorders from "./tallinn-borders.json";
 import tallinnLakes from "./tallinn-lakes.json";
 import tallinnMatching from "./tallinn-matching.json";
 import tallinnPlaces from "./tallinn-places.json";
-import tallinnTransit from "./tallinn-transit.json";
+import { transitData, type TransitType } from "./liveTransit";
 
+export type { TransitType } from "./liveTransit";
 export type TallinnPlace = { name: string; lat: number; lng: number };
-export type TransitType = "train" | "tram" | "bus" | "ferry";
-type TransitPlatform = {
-    id: string;
-    lat: number;
-    lng: number;
-    types: TransitType[];
-    lines: string[];
-};
-type TransitStop = { name: string; platforms: TransitPlatform[] };
 export type StationProperties = {
     id: string;
     name: string;
+    types: TransitType[];
     lines: string[];
     // [lng, lat] of every platform (one per direction), exact source coordinates
     platforms: [number, number][];
@@ -57,6 +50,32 @@ export const isInPlayArea = (lng: number, lat: number) =>
 // Stops just outside the border (e.g. Jõeküla, Tiskre) still count as hiding zones
 const STOP_BORDER_MARGIN_M = 500;
 const nearCache = new WeakMap<object, Map<string, boolean>>();
+// The border as lines (simplified to ~15 m, plenty for a 500 m margin), each with its
+// box, built once per play area: measuring to the full border for every stop was slow
+const borderCache = new WeakMap<
+    object,
+    { line: Feature<any>; box: number[] }[]
+>();
+const borderLines = (area: FeatureCollection<Polygon | MultiPolygon>) => {
+    let lines = borderCache.get(area);
+    if (!lines) {
+        const pad = 0.01; // degrees, more than 500 m
+        lines = area.features.flatMap((f) =>
+            turf
+                .flatten(turf.polygonToLine(f) as any)
+                .features.map((line: any) => {
+                    const simple = turf.simplify(line, { tolerance: 0.00015 });
+                    const [w, s, e, n] = turf.bbox(simple);
+                    return {
+                        line: simple,
+                        box: [w - pad * 2, s - pad, e + pad * 2, n + pad],
+                    };
+                }),
+        );
+        borderCache.set(area, lines);
+    }
+    return lines;
+};
 const isNearPlayArea = (lng: number, lat: number) => {
     const area = playArea();
     let cache = nearCache.get(area);
@@ -67,13 +86,15 @@ const isNearPlayArea = (lng: number, lat: number) => {
         const point = turf.point([lng, lat]);
         near =
             isInPlayArea(lng, lat) ||
-            area.features.some((f) =>
-                turf.flatten(turf.polygonToLine(f) as any).features.some(
-                    (line: any) =>
-                        turf.pointToLineDistance(point, line, {
-                            units: "meters",
-                        }) <= STOP_BORDER_MARGIN_M,
-                ),
+            borderLines(area).some(
+                ({ line, box }) =>
+                    lng > box[0] &&
+                    lng < box[2] &&
+                    lat > box[1] &&
+                    lat < box[3] &&
+                    turf.pointToLineDistance(point, line, {
+                        units: "meters",
+                    }) <= STOP_BORDER_MARGIN_M,
             );
         cache.set(key, near);
     }
@@ -202,10 +223,28 @@ export const toTransitTypes = (options: string[]): TransitType[] => {
 // A stop keeps every platform of the chosen types (one per direction); the point itself is
 // the real platform closest to the stop's middle, never an averaged position.
 // Only lines of the chosen types are kept, so "same line" compares like with like.
+// The id stays the same whatever types are chosen, so a marked stop keeps its mark.
+const stationCache = new WeakMap<object, Map<string, any>>();
 export const getTransitStations = (types: TransitType[]) => {
+    const stops = transitData.get().stops;
+    let byTypes = stationCache.get(stops);
+    if (!byTypes) stationCache.set(stops, (byTypes = new Map()));
+    const key =
+        [...types].sort().join(",") + "|" + (polyGeoJSON.get() ? "custom" : "");
+    const cached = byTypes.get(key);
+    if (cached) return cached as FeatureCollection<Point, StationProperties>;
+    const result = buildTransitStations(stops, types);
+    byTypes.set(key, result);
+    return result;
+};
+
+const buildTransitStations = (
+    stops: ReturnType<typeof transitData.get>["stops"],
+    types: TransitType[],
+) => {
     const features: Feature<Point, StationProperties>[] = [];
 
-    for (const stop of tallinnTransit as TransitStop[]) {
+    for (const stop of stops) {
         const platforms = stop.platforms.filter(
             (platform) =>
                 platform.types.some((t) => types.includes(t)) &&
@@ -222,21 +261,13 @@ export const getTransitStations = (types: TransitType[]) => {
                 ? p
                 : best,
         );
-        const lines = [
-            ...new Set(
-                platforms.flatMap((p) =>
-                    p.lines.filter((line) =>
-                        types.some((t) =>
-                            line.toLowerCase().startsWith(t + " "),
-                        ),
-                    ),
-                ),
-            ),
-        ];
+        // Lines of the kept platforms (a platform only carries lines of its own type)
+        const lines = [...new Set(platforms.flatMap((p) => p.lines))];
 
         features.push(
             turf.point([main.lng, main.lat], {
-                id: `${stop.name}@${main.id}`,
+                types: [...new Set(platforms.flatMap((p) => p.types))],
+                id: `${stop.name}@${stop.platforms[0].id}`,
                 name: stop.name,
                 lines,
                 platforms: platforms.map(
@@ -274,3 +305,56 @@ export const stationZone = <P>(
 
 export const sharesLine = (a: { lines?: string[] }, b: { lines?: string[] }) =>
     (a.lines ?? []).some((line) => (b.lines ?? []).includes(line));
+
+// The stop nearest to a point among all stops of the chosen types (not only the ones
+// still possible), as the seeker would see it standing there
+export const nearestTransitStation = (
+    lng: number,
+    lat: number,
+    types: TransitType[],
+) => {
+    const stations = getTransitStations(types);
+    if (stations.features.length === 0) return null;
+    return turf.nearestPoint(
+        turf.point([lng, lat]),
+        stations as any,
+    ) as unknown as Feature<Point, StationProperties>;
+};
+
+const LINE_ORDER: Record<string, number> = {
+    Train: 0,
+    Tram: 1,
+    Trolleybus: 2,
+    Bus: 3,
+    Ferry: 4,
+};
+const lineSort = (a: string, b: string) => {
+    const [ta, na] = [a.split(" ")[0], a.slice(a.indexOf(" ") + 1)];
+    const [tb, nb] = [b.split(" ")[0], b.slice(b.indexOf(" ") + 1)];
+    return (
+        (LINE_ORDER[ta] ?? 9) - (LINE_ORDER[tb] ?? 9) ||
+        na.localeCompare(nb, "et", { numeric: true })
+    );
+};
+
+// Every line serving a stop of the chosen types, sorted train, tram, bus, ferry
+export const allTransitLines = (types: TransitType[]) =>
+    [
+        ...new Set(
+            getTransitStations(types).features.flatMap(
+                (f) => f.properties.lines,
+            ),
+        ),
+    ].sort(lineSort);
+
+export const sortLines = (lines: string[]) => [...lines].sort(lineSort);
+
+// Train stops (Elron) near Tallinn, for the "closer to a train station" question
+export const trainStopPoints = () =>
+    turf.featureCollection(
+        getTransitStations(["train"]).features.flatMap((f) =>
+            f.properties.platforms.map(([lng, lat]) =>
+                turf.point([lng, lat], { name: f.properties.name }),
+            ),
+        ),
+    );

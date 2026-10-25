@@ -5,8 +5,14 @@ import { useEffect } from "react";
 import { useMap } from "react-leaflet";
 
 import { questions, triggerLocalRefresh } from "@/lib/context";
-import { getTallinnPlaces, TALLINN_AIRPORTS } from "@/maps/api";
+import {
+    getTallinnPlaces,
+    getTransitStations,
+    TALLINN_AIRPORTS,
+} from "@/maps/api";
+import tallinnLakes from "@/maps/api/tallinn-lakes.json";
 import { FLAGS } from "@/maps/api/flags";
+import { transitData } from "@/maps/api/liveTransit";
 import tallinnBoundary from "@/maps/api/tallinn.json";
 import tallinnPlaces from "@/maps/api/tallinn-places.json";
 
@@ -46,6 +52,9 @@ export const TENTACLE_EMOJI: Record<string, string> = {
     park: "🌳",
     golf_course: "⛳",
     airport: "✈️",
+    mcdonalds: "🍔",
+    rail: "🚆",
+    water: "💧",
     custom: "📍",
 };
 
@@ -222,38 +231,106 @@ export const TentaclePlaceMarkers = () => {
     return null;
 };
 
-// Shows the places a matching question compares (airports, museums, parks, ...)
-export const MatchingPlaceMarkers = () => {
+// Lakes and ponds of the Body of Water question, one icon inside each
+let lakePoints: Place[] | null = null;
+const lakePlaces = () =>
+    (lakePoints ??= tallinnLakes.features.map((lake: any) => {
+        const [lng, lat] = turf.pointOnFeature(lake).geometry.coordinates;
+        return { name: lake.properties.name, lat, lng };
+    }));
+
+const customPoints = (data: any): Place[] =>
+    (data.geo?.features ?? data.geo ?? [])
+        .filter((f: any) => f?.geometry?.type === "Point")
+        .map((f: any, i: number) => ({
+            name: f.properties?.name ?? `Point ${i + 1}`,
+            lng: f.geometry.coordinates[0],
+            lat: f.geometry.coordinates[1],
+        }));
+
+// The places a matching or measuring question compares, and its icon. Matching
+// "in zone" variants only count places in Tallinn; measuring counts the nearest
+// one wherever it is, so places outside are shown faded.
+const placesFor = (
+    id: "matching" | "measuring",
+    data: any,
+): { places: Place[]; emoji: string; fadeOutside: boolean } | null => {
+    const type: string = data.type;
+    const category = type.replace(/-full$/, "");
+    if (type === "airport") {
+        return { places: TALLINN_AIRPORTS, emoji: "✈️", fadeOutside: true };
+    }
+    if (type === "mcdonalds") {
+        return {
+            places: getTallinnPlaces("mcdonalds"),
+            emoji: TENTACLE_EMOJI.mcdonalds,
+            fadeOutside: true,
+        };
+    }
+    if (type === "rail-measure") {
+        return {
+            places: getTransitStations(["train"]).features.map((f) => ({
+                name: f.properties.name,
+                lng: f.geometry.coordinates[0],
+                lat: f.geometry.coordinates[1],
+            })),
+            emoji: TENTACLE_EMOJI.rail,
+            fadeOutside: true,
+        };
+    }
+    if (type === "body_of_water") {
+        return {
+            places: lakePlaces(),
+            emoji: TENTACLE_EMOJI.water,
+            fadeOutside: false,
+        };
+    }
+    if (type === "custom-points" || type === "custom-measure") {
+        return {
+            places: customPoints(data),
+            emoji: TENTACLE_EMOJI.custom,
+            fadeOutside: false,
+        };
+    }
+    if (!TENTACLE_EMOJI[category]) return null;
+    const all = getTallinnPlaces(category);
+    if (id === "matching" && type.endsWith("-full")) {
+        return {
+            places: all.filter(isInTallinn),
+            emoji: TENTACLE_EMOJI[category],
+            fadeOutside: false,
+        };
+    }
+    return { places: all, emoji: TENTACLE_EMOJI[category], fadeOutside: true };
+};
+
+// Shows the places every matching and measuring question compares (airports,
+// museums, McDonald's, train stops, lakes, ...), like the tentacles icons
+export const QuestionPlaceMarkers = () => {
     useStore(triggerLocalRefresh);
     const $questions = useStore(questions);
+    const $transitData = useStore(transitData);
 
     const icons: PointIcon[] = [];
     for (const question of $questions) {
-        if (question.id !== "matching" || question.data.hidden) continue;
-        const type = question.data.type;
-        const category = type.replace(/-full$/, "");
-        let places: Place[];
-        if (type === "airport") {
-            places = TALLINN_AIRPORTS;
-        } else if (type.endsWith("-full")) {
-            // "In zone" variants only count places inside Tallinn
-            places = getTallinnPlaces(category).filter(isInTallinn);
-        } else if (TENTACLE_EMOJI[category]) {
-            places = getTallinnPlaces(category);
-        } else {
-            continue;
-        }
-        const emoji = TENTACLE_EMOJI[category] ?? "📍";
-        for (const p of places) {
+        if (question.id !== "matching" && question.id !== "measuring") continue;
+        if (question.data.hidden) continue;
+        const found = placesFor(question.id, question.data);
+        if (!found) continue;
+        for (const p of found.places) {
             icons.push({
-                key: `m${question.key}-${p.name}`,
+                key: `q${question.key}-${p.name}-${p.lat}`,
                 place: p,
-                emoji,
+                emoji: found.emoji,
                 flag: p.country,
+                inRange: found.fadeOutside ? isInTallinn(p) : true,
             });
         }
     }
 
-    usePlaceIcons(icons, icons.map((i) => i.key).join("|"));
+    usePlaceIcons(
+        icons,
+        icons.map((i) => i.key).join("|") + $transitData.updated,
+    );
     return null;
 };

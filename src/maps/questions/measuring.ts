@@ -7,7 +7,6 @@ import {
     mapGeoJSON,
     mapGeoLocation,
     polyGeoJSON,
-    trainStations,
 } from "@/lib/context";
 import {
     findTallinnBorder,
@@ -16,6 +15,7 @@ import {
     nearestToQuestion,
     TALLINN_AIRPORTS,
     toPoints,
+    trainStopPoints,
 } from "@/maps/api";
 import {
     arcBufferToPoint,
@@ -131,9 +131,19 @@ export const determineMeasuringBoundary = async (
         case "golf_course":
         case "consulate":
         case "park":
-        case "mcdonalds":
-        case "rail-measure":
             return false;
+        case "mcdonalds":
+            // McDonald's restaurants in and around Tallinn
+            return [
+                turf.combine(toPoints(getTallinnPlaces("mcdonalds")))
+                    .features[0],
+            ];
+        case "rail-measure": {
+            // Elron train stops (every platform), including those just outside Tallinn
+            const stops = trainStopPoints();
+            if (stops.features.length === 0) return false;
+            return [turf.combine(stops).features[0]];
+        }
     }
 };
 
@@ -243,6 +253,7 @@ export const hiderifyMeasuring = async (question: MeasuringQuestion) => {
             drag: false,
             color: "black",
             collapsed: false,
+            hidden: false,
         });
 
         question.hiderCloser =
@@ -259,36 +270,12 @@ export const hiderifyMeasuring = async (question: MeasuringQuestion) => {
         return question;
     }
 
-    if (question.type === "rail-measure") {
-        const stations = trainStations.get();
-
-        if (stations.length === 0) {
-            return question;
-        }
-
-        const location = turf.point([question.lng, question.lat]);
-
-        const nearestTrainStation = turf.nearestPoint(
-            location,
-            turf.featureCollection(stations.map((x) => x.properties)),
-        );
-
-        const distance = await arcDistance(location, nearestTrainStation);
-
-        const hider = turf.point([$hiderMode.longitude, $hiderMode.latitude]);
-
-        const hiderNearest = turf.nearestPoint(
-            hider,
-            turf.featureCollection(stations.map((x) => x.properties)),
-        );
-
-        const hiderDistance = await arcDistance(hider, hiderNearest);
-
-        question.hiderCloser = hiderDistance < distance;
-    }
-
-    if (question.type === "mcdonalds") {
-        const points = toPoints(getTallinnPlaces("mcdonalds"));
+    if (question.type === "rail-measure" || question.type === "mcdonalds") {
+        const points =
+            question.type === "rail-measure"
+                ? trainStopPoints()
+                : toPoints(getTallinnPlaces("mcdonalds"));
+        if (points.features.length === 0) return question;
 
         const seeker = turf.point([question.lng, question.lat]);
         const nearest = turf.nearestPoint(seeker, points as any);

@@ -8,7 +8,7 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import {
     autoSave,
     hiderMode,
-    questionModified,
+    questionMoved,
     questions,
     save,
     triggerLocalRefresh,
@@ -242,7 +242,7 @@ export const DraggableMarkers = () => {
                                         e.target.getLatLng().lat;
                                     question.data.lng =
                                         e.target.getLatLng().lng;
-                                    questionModified();
+                                    questionMoved();
                                 }}
                             />
                         );
@@ -261,7 +261,7 @@ export const DraggableMarkers = () => {
                                             e.target.getLatLng().lat;
                                         question.data.lngA =
                                             e.target.getLatLng().lng;
-                                        questionModified();
+                                        questionMoved();
                                     }}
                                 />
                                 <ColoredMarker
@@ -276,7 +276,7 @@ export const DraggableMarkers = () => {
                                             e.target.getLatLng().lat;
                                         question.data.lngB =
                                             e.target.getLatLng().lng;
-                                        questionModified();
+                                        questionMoved();
                                     }}
                                 />
                             </Fragment>

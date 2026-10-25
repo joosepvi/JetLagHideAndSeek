@@ -119,12 +119,12 @@ export const MeasuringQuestionComponent = ({
             );
             break;
         case "mcdonalds":
+        case "rail-measure":
             questionSpecific = (
                 <span className="px-2 text-center text-orange-500">
-                    This question will eliminate hiding zones that don&apos;t
-                    fit the criteria. When you click on a zone, the parts of
-                    that zone that don&apos;t satisfy the criteria will be
-                    eliminated.
+                    {data.type === "mcdonalds"
+                        ? "Distance to the nearest McDonald's (7 in and around Tallinn)."
+                        : "Distance to the nearest Elron train stop (peatus.ee / Elron data)."}
                 </span>
             );
             break;
@@ -248,7 +248,7 @@ export const MeasuringQuestionComponent = ({
                         .reduce(
                             (acc, [key, value]) => {
                                 const values = {
-                                    disabled: !$displayHidingZones,
+                                    disabled: false, // works with or without zones shown
                                     options: value,
                                 };
 

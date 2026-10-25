@@ -16,6 +16,7 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import {
     customInitPreference,
     displayHidingZones,
+    displayHidingZonesOptions,
     drawingQuestionKey,
     hiderMode,
     isLoading,
@@ -24,7 +25,14 @@ import {
     triggerLocalRefresh,
 } from "@/lib/context";
 import { cn } from "@/lib/utils";
-import { TALLINN_ZONE_LEVELS } from "@/maps/api";
+import {
+    allTransitLines,
+    nearestTransitStation,
+    sortLines,
+    TALLINN_ZONE_LEVELS,
+    toTransitTypes,
+} from "@/maps/api";
+import { transitData } from "@/maps/api/liveTransit";
 import {
     determineMatchingBoundary,
     findMatchingPlaces,
@@ -109,11 +117,19 @@ export const MatchingQuestionComponent = ({
             break;
         case "same-train-line":
             questionSpecific = (
-                <span className="px-2 text-center text-orange-500">
-                    Uses the stops and lines of the hiding zone place types
-                    (transport.tallinn.ee and Elron timetables). Make sure the
-                    other players use the same settings.
-                </span>
+                <>
+                    <SidebarMenuItem className={MENU_ITEM_CLASSNAME}>
+                        <LinePicker
+                            data={data}
+                            disabled={!data.drag || $isLoading}
+                        />
+                    </SidebarMenuItem>
+                    <span className="px-2 text-center text-orange-500">
+                        Pick the line. Same: only stops of that line stay
+                        possible. Different: its stops are ruled out. Lines come
+                        from peatus.ee (built-in copy offline).
+                    </span>
+                </>
             );
             break;
         case "hospital":
@@ -252,7 +268,7 @@ export const MatchingQuestionComponent = ({
                         .reduce(
                             (acc, [key, value]) => {
                                 const values = {
-                                    disabled: !$displayHidingZones,
+                                    disabled: false, // works with or without zones shown
                                     options: value,
                                 };
 
@@ -440,5 +456,55 @@ export const MatchingQuestionComponent = ({
                 )}
             </div>
         </QuestionCard>
+    );
+};
+
+const LINE_GROUPS: [RegExp, string][] = [
+    [/^Train /, "Trains"],
+    [/^Tram /, "Trams"],
+    [/^(Bus|Trolleybus) /, "Buses"],
+    [/.*/, "Ferries and boats"],
+];
+
+// Line choice for the same line question: the lines at the seeker's nearest stop
+// first, then every line of the chosen stop types
+const LinePicker = ({
+    data,
+    disabled,
+}: {
+    data: MatchingQuestion;
+    disabled: boolean;
+}) => {
+    const $transitData = useStore(transitData);
+    const $options = useStore(displayHidingZonesOptions);
+
+    const groups = React.useMemo(() => {
+        const types = toTransitTypes($options);
+        const nearest = nearestTransitStation(data.lng, data.lat, types);
+        const nearLines = sortLines(nearest?.properties.lines ?? []);
+        const result: Record<string, Record<string, string>> = {};
+        if (nearest && nearLines.length > 0) {
+            result[`At your stop: ${nearest.properties.name}`] =
+                Object.fromEntries(nearLines.map((l) => [l, l]));
+        }
+        for (const line of allTransitLines(types)) {
+            if (nearLines.includes(line)) continue;
+            const group = LINE_GROUPS.find(([re]) => re.test(line))![1];
+            (result[group] ??= {})[line] = line;
+        }
+        return result;
+    }, [data.lat, data.lng, $transitData, $options]);
+
+    return (
+        <Select
+            trigger="Choose the line"
+            groups={groups}
+            value={data.line ?? ""}
+            onValueChange={(value) => {
+                data.line = value;
+                questionModified();
+            }}
+            disabled={disabled}
+        />
     );
 };

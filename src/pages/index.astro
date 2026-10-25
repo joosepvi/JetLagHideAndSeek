@@ -1,6 +1,5 @@
 ---
 import Layout from "@/layouts/Layout.astro";
-import { Map } from "@/components/Map";
 import {
     SidebarProvider as SidebarProviderL,
     SidebarTrigger as SidebarTriggerL,
@@ -9,23 +8,26 @@ import {
     SidebarProvider as SidebarProviderR,
     SidebarTrigger as SidebarTriggerR,
 } from "@/components/ui/sidebar-r";
-import { QuestionSidebar } from "@/components/QuestionSidebar";
-import { ZoneSidebar } from "@/components/ZoneSidebar";
 import { OptionDrawers } from "@/components/OptionDrawers";
-import { TutorialDialog } from "@/components/TutorialDialog";
-import { BusyIndicator } from "@/components/BusyIndicator";
+import {
+    SafeBusyIndicator,
+    SafeMap,
+    SafeQuestionSidebar,
+    SafeTutorialDialog,
+    SafeZoneSidebar,
+} from "@/components/ErrorBoundary";
 ---
 
 <Layout className="bg-jetlag">
     <SidebarProviderL client:load>
         <SidebarProviderR client:load defaultOpen={false}>
-            <QuestionSidebar client:only />
+            <SafeQuestionSidebar client:only />
             <main class="flex flex-col flex-grow group">
                 <div
                     class="flex justify-center"
                     id="map-modal-dialog-container-leaflet"
                 >
-                    <div class="w-full h-full relative">
+                    <div class="w-full h-full min-h-[100svh] relative">
                         <div
                             class="absolute top-2 left-2 z-[1030]"
                             data-tutorial-id="left-sidebar-trigger"
@@ -38,24 +40,31 @@ import { BusyIndicator } from "@/components/BusyIndicator";
                             <SidebarTriggerR client:load />
                         </div>
                         <div
-                            class="absolute top-3 left-1/2 -translate-x-1/2 z-[1030] pointer-events-none"
+                            class="busy-indicator-slot fixed top-3 left-1/2 -translate-x-1/2 z-[1050] pointer-events-none"
                         >
-                            <BusyIndicator client:only />
+                            <SafeBusyIndicator client:only />
                         </div>
                         <div
                             class="bottom-buttons bottom-12 left-2 w-fit absolute z-[1030]"
                         >
                             <OptionDrawers client:load />
                         </div>
-                        <Map
-                            className="w-full"
-                            client:only
-                        />
+                        <!-- Shown until the map has started (plain HTML, no script needed) -->
+                        <div
+                            class="absolute inset-0 flex flex-col items-center justify-center gap-3 text-white"
+                        >
+                            <div
+                                class="h-8 w-8 animate-spin rounded-full border-4 border-white/30 border-t-white"
+                            >
+                            </div>
+                            <p class="text-sm">Laen kaarti…</p>
+                        </div>
+                        <SafeMap className="w-full" client:only />
                     </div>
                 </div>
             </main>
-            <ZoneSidebar client:only />
-            <TutorialDialog client:only />
+            <SafeZoneSidebar client:only />
+            <SafeTutorialDialog client:only />
         </SidebarProviderR>
     </SidebarProviderL>
 </Layout>

@@ -351,7 +351,7 @@ export const OptionDrawers = ({ className }: { className?: string }) => {
     return (
         <div
             className={cn(
-                "flex justify-start gap-1.5 max-[412px]:!mb-4 max-[640px]:overflow-x-auto max-[640px]:w-[85vw] max-[640px]:justify-start max-[640px]:[&>button]:flex-shrink-0 max-[640px]:[&>div]:flex-shrink-0 max-[640px]:pb-1",
+                "flex justify-start gap-1.5 max-[412px]:!mb-4 max-[640px]:flex-wrap max-[640px]:w-[calc(100vw-1rem)] max-[640px]:justify-start max-[640px]:[&>button]:flex-shrink-0 max-[640px]:[&>div]:flex-shrink-0 max-[640px]:pb-1",
                 className,
             )}
         >
@@ -546,9 +546,6 @@ export const OptionDrawers = ({ className }: { className?: string }) => {
                                     voyager: "CARTO Voyager",
                                     light: "CARTO Light",
                                     dark: "CARTO Dark",
-                                    transport: "Thunderforest Transport",
-                                    neighbourhood:
-                                        "Thunderforest Neighbourhood",
                                     osmcarto: "OpenStreetMap Carto",
                                 }}
                                 value={$baseTileLayer}
@@ -556,94 +553,6 @@ export const OptionDrawers = ({ className }: { className?: string }) => {
                                     baseTileLayer.set(v as any)
                                 }
                             />
-                            <div className="flex flex-col items-center gap-2">
-                                <Label>Thunderforest API Key</Label>
-                                <Input
-                                    type="text"
-                                    value={$thunderforestApiKey}
-                                    id="thunderforestApiKey"
-                                    onChange={(e) =>
-                                        thunderforestApiKey.set(e.target.value)
-                                    }
-                                    placeholder="Enter your Thunderforest API key"
-                                />
-                                <p className="text-xs text-gray-500">
-                                    Needed for Thunderforest map styles. Create
-                                    a key{" "}
-                                    <a
-                                        href="https://manage.thunderforest.com/users/sign_up?price=hobby-project-usd"
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="text-blue-500 cursor-pointer"
-                                    >
-                                        here.
-                                    </a>{" "}
-                                    Don&apos;t worry, it&apos;s free.
-                                </p>
-                            </div>
-                            <Separator className="bg-slate-300 w-[280px]" />
-                            <div className="flex flex-col items-center gap-2">
-                                <Label>Pastebin API Key</Label>
-                                <Input
-                                    type="text"
-                                    value={$pastebinApiKey}
-                                    id="pastebinApiKey"
-                                    onChange={(e) =>
-                                        pastebinApiKey.set(e.target.value)
-                                    }
-                                    placeholder="Enter your Pastebin API key"
-                                />
-                                <p className="text-xs text-gray-500">
-                                    Optional. If set, large game data will be
-                                    shared via Pastebin URL; otherwise it falls
-                                    back to a JSON file download. Create a key{" "}
-                                    <a
-                                        href="https://pastebin.com/doc_api"
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="text-blue-500 cursor-pointer"
-                                    >
-                                        here
-                                    </a>
-                                    .
-                                </p>
-                            </div>
-                            <Separator className="bg-slate-300 w-[280px]" />
-                            <Label>Overpass API Host</Label>
-                            <Select
-                                trigger="Overpass API host"
-                                options={{
-                                    ...Object.fromEntries(
-                                        Object.entries(OVERPASS_HOSTS).map(
-                                            ([label, url]) => [url, label],
-                                        ),
-                                    ),
-                                    custom: "Custom URL",
-                                }}
-                                value={$overpassHost}
-                                onValueChange={(v) =>
-                                    overpassHost.set(v as any)
-                                }
-                            />
-                            {$overpassHost === "custom" && (
-                                <div className="flex flex-col items-center gap-2 w-full">
-                                    <Input
-                                        type="text"
-                                        value={$overpassCustomHost}
-                                        onChange={(e) =>
-                                            overpassCustomHost.set(
-                                                e.target.value,
-                                            )
-                                        }
-                                        placeholder="https://your-overpass-instance/api/interpreter"
-                                    />
-                                </div>
-                            )}
-                            <p className="text-xs text-gray-500 text-center">
-                                {$overpassHost === "custom"
-                                    ? "The other hosts will be used as fallbacks if this one fails."
-                                    : "The remaining hosts will be tried as fallbacks if the selected one fails."}
-                            </p>
                             <Separator className="bg-slate-300 w-[280px]" />
                             <Label>Permanent Map Overlay</Label>
                             <div className="flex flex-row max-[330px]:flex-col gap-4">

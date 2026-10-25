@@ -5,6 +5,8 @@ import { toast } from "react-toastify";
 import {
     displayHidingZonesOptions,
     hiderMode,
+    hidingRadius,
+    hidingRadiusUnits,
     mapGeoJSON,
     mapGeoLocation,
     polyGeoJSON,
@@ -16,12 +18,14 @@ import {
     getTransitStations,
     isInPlayArea,
     nearestToQuestion,
-    sharesLine,
+    nearestTransitStation,
+    stationZone,
     TALLINN_AIRPORTS,
     toPoints,
     toTransitTypes,
 } from "@/maps/api";
 import { holedMask, modifyMapData, safeUnion } from "@/maps/geo-utils";
+import { transitData } from "@/maps/api/liveTransit";
 import { geoSpatialVoronoi } from "@/maps/geo-utils";
 import type {
     APILocations,
@@ -155,11 +159,51 @@ export const determineMatchingBoundary = _.memoize(
         }),
 );
 
+// Same line question: the hider's hiding zone is around a stop of the chosen line
+// ("Same") or around any other stop ("Different").
+const lineZone = _.memoize(
+    (line: string, same: boolean) => {
+        const types = toTransitTypes(displayHidingZonesOptions.get());
+        const radius = hidingRadius.get();
+        const units = hidingRadiusUnits.get();
+        const zones = getTransitStations(types)
+            .features.filter(
+                (station) => station.properties.lines.includes(line) === same,
+            )
+            .map((station) => stationZone(station, radius, units, {}));
+        if (zones.length === 0) return null;
+        return safeUnion(turf.featureCollection(zones));
+    },
+    (line: string, same: boolean) =>
+        JSON.stringify([
+            line,
+            same,
+            displayHidingZonesOptions.get(),
+            hidingRadius.get(),
+            hidingRadiusUnits.get(),
+            transitData.get().updated,
+        ]),
+);
+
 export const adjustPerMatching = async (
     question: MatchingQuestion,
     mapData: any,
 ) => {
     if (mapData === null) return;
+
+    if (question.type === "same-train-line") {
+        // Until a line is picked the question doesn't change the map
+        if (!question.line) return mapData;
+        const zone = lineZone(question.line, question.same);
+        if (!zone) {
+            toast.warning(
+                `No stops of ${question.line} among the chosen stop types`,
+                { toastId: "line-no-stops" },
+            );
+            return question.same ? null : mapData;
+        }
+        return modifyMapData(mapData, zone, true);
+    }
 
     const boundary = await determineMatchingBoundary(question);
 
@@ -200,6 +244,7 @@ export const hiderifyMatching = async (question: MatchingQuestion) => {
             drag: false,
             color: "black",
             collapsed: false,
+            hidden: false,
         });
 
         question.same =
@@ -230,10 +275,15 @@ export const hiderifyMatching = async (question: MatchingQuestion) => {
         );
 
         if (question.type === "same-train-line") {
-            question.same = sharesLine(
-                nearestSeekerTrainStation.properties as any,
-                nearestHiderTrainStation.properties as any,
+            if (!question.line) return question;
+            const hiderStop = nearestTransitStation(
+                $hiderMode.longitude,
+                $hiderMode.latitude,
+                toTransitTypes(displayHidingZonesOptions.get()),
             );
+            question.same =
+                hiderStop?.properties.lines.includes(question.line) ?? false;
+            return question;
         }
 
         const hiderEnglishName = nearestHiderTrainStation.properties.name;

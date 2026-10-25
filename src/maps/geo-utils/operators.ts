@@ -38,6 +38,40 @@ export const holedMask = (
     );
 };
 
+// Removes slivers: where shapes from different sources (city border, districts,
+// buffers) don't share exact edges, cutting one from another leaves hairline pieces
+// and holes. Pieces and holes under ~0.25 ha, or thin ones under 2 ha, are dropped.
+const MIN_PIECE_M2 = 2500;
+const THIN_PIECE_M2 = 20000;
+const isSliver = (ring: number[][]) => {
+    const polygon = turf.polygon([ring]);
+    const area = turf.area(polygon);
+    if (area < MIN_PIECE_M2) return true;
+    if (area >= THIN_PIECE_M2) return false;
+    const perimeter = turf.length(turf.lineString(ring), { units: "meters" });
+    // 1 for a circle, close to 0 for a long thin strip
+    return (4 * Math.PI * area) / (perimeter * perimeter) < 0.05;
+};
+export const cleanArea = <T extends Feature<Polygon | MultiPolygon> | null>(
+    area: T,
+): T => {
+    if (!area) return area;
+    const polygons = (
+        area.geometry.type === "Polygon"
+            ? [area.geometry.coordinates]
+            : area.geometry.coordinates
+    )
+        .filter((rings) => rings[0].length >= 4 && !isSliver(rings[0]))
+        .map((rings) => [
+            rings[0],
+            ...rings
+                .slice(1)
+                .filter((ring) => ring.length >= 4 && !isSliver(ring)),
+        ]);
+    if (polygons.length === 0) return null as T;
+    return turf.multiPolygon(polygons, area.properties) as unknown as T;
+};
+
 export const modifyMapData = (
     mapData: FeatureCollection<Polygon | MultiPolygon>,
     modifications:
@@ -49,15 +83,19 @@ export const modifyMapData = (
         "features" in modifications ? safeUnion(modifications) : modifications;
 
     if (withinModifications) {
-        return turf.intersect(
-            turf.featureCollection([safeUnion(mapData), safeModifications]),
+        return cleanArea(
+            turf.intersect(
+                turf.featureCollection([safeUnion(mapData), safeModifications]),
+            ),
         );
     }
-    return turf.intersect(
-        turf.featureCollection([
-            safeUnion(mapData),
-            holedMask(safeModifications)!,
-        ]),
+    return cleanArea(
+        turf.intersect(
+            turf.featureCollection([
+                safeUnion(mapData),
+                holedMask(safeModifications)!,
+            ]),
+        ),
     );
 };
 

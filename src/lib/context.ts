@@ -1,4 +1,4 @@
-import { persistentAtom } from "@nanostores/persistent";
+import { persistentAtom as rawPersistentAtom } from "@nanostores/persistent";
 import type { FeatureCollection, MultiPolygon, Polygon } from "geojson";
 import type { Map } from "leaflet";
 import { atom, computed, onSet } from "nanostores";
@@ -18,6 +18,29 @@ import {
     questionsSchema,
     type Units,
 } from "@/maps/schema";
+
+// Saved settings that can't be read (old format, hand-edited, cut off) fall back to the
+// default instead of crashing the whole app on every load.
+const persistentAtom = (<T>(name: string, initial: T, opts?: any) =>
+    rawPersistentAtom<T>(
+        name,
+        initial,
+        opts?.decode
+            ? {
+                  ...opts,
+                  decode: (value: string) => {
+                      try {
+                          const decoded = opts.decode(value);
+                          return decoded === undefined || decoded === null
+                              ? initial
+                              : decoded;
+                      } catch {
+                          return initial;
+                      }
+                  },
+              }
+            : opts,
+    )) as typeof rawPersistentAtom;
 
 export const mapGeoLocation = persistentAtom<OpenStreetMap>(
     "mapGeoLocationTallinn",
@@ -77,6 +100,9 @@ export const questions = persistentAtom<Questions>("questions", [], {
 });
 export const addQuestion = (question: DeepPartial<Question>) =>
     questionModified(questions.get().push(questionSchema.parse(question)));
+// A pin was moved: always hand the map a new question list so it recalculates,
+// even when auto save is off
+export const questionMoved = () => questions.set([...questions.get()]);
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export const questionModified = (..._: any[]) => {
     if (autoSave.get()) {
@@ -130,6 +156,16 @@ export const displayHidingZonesStyle = persistentAtom<
     "zones" | "stations" | "no-overlap" | "no-display"
 >("displayHidingZonesStyleTallinn", "no-overlap");
 export const questionFinishedMapData = atom<any>(null);
+// The area the hider can still be in (after all questions), for placing new pins
+export const remainingArea = atom<FeatureCollection<
+    Polygon | MultiPolygon
+> | null>(null);
+// Last GPS fix while "Follow Me" is on
+export const lastGpsPosition = atom<{
+    lat: number;
+    lng: number;
+    time: number;
+} | null>(null);
 
 export const trainStations = atom<StationCircle[]>([]);
 onSet(trainStations, ({ newValue }) => {
@@ -172,13 +208,14 @@ export const includeDefaultStations = persistentAtom<boolean>(
         decode: JSON.parse,
     },
 );
-// Small game hiding zone: 1/4 mile ≈ 0.4 km
-export const hidingRadius = persistentAtom<number>("hidingRadius", 0.4, {
+// Tallinn hiding zone: 500 m around each stop. New storage key, so players who had
+// the old 0.4 km default saved also get 500 m.
+export const hidingRadius = persistentAtom<number>("hidingRadiusTallinn", 0.5, {
     encode: JSON.stringify,
     decode: JSON.parse,
 });
 export const hidingRadiusUnits = persistentAtom<Units>(
-    "hidingRadiusUnits",
+    "hidingRadiusUnitsTallinn",
     "kilometers",
     {
         encode: JSON.stringify,
