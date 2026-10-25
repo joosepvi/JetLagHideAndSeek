@@ -45,7 +45,7 @@ import {
 } from "@/maps";
 import { cleanArea, safeUnion } from "@/maps/geo-utils";
 import { hiderifyQuestion } from "@/maps";
-import { clearCache, determineMapBoundaries } from "@/maps/api";
+import { BLANK_GEOJSON, clearCache, determineMapBoundaries } from "@/maps/api";
 import tallinnBoundary from "@/maps/api/tallinn.json";
 
 import { yieldToPaint } from "./BusyIndicator";
@@ -280,16 +280,29 @@ export const Map = ({ className }: { className?: string }) => {
             // still have answered them all from one hiding zone
             questionAreas.set(areas);
 
-            // Leftover slivers would show up as outlined holes in the shading
-            const remaining = cleanArea(
-                safeUnion(mapGeoData as any) as Feature<Polygon | MultiPolygon>,
+            // Leftover slivers would show up as outlined holes in the shading.
+            // No common area left just shades the whole map: a hider who moved
+            // inside their zone can still fit every answer, so only the stops tell
+            // whether nothing fits (see ZoneSidebar).
+            const remaining =
+                (mapGeoData?.features?.length ?? 0) > 0
+                    ? cleanArea(
+                          safeUnion(mapGeoData as any) as Feature<
+                              Polygon | MultiPolygon
+                          >,
+                      )
+                    : null;
+            remainingArea.set(
+                remaining ? turf.featureCollection([remaining]) : null,
             );
-            if (!remaining) throw new Error("No area left");
-            remainingArea.set(turf.featureCollection([remaining]));
 
             mapGeoData = {
                 type: "FeatureCollection",
-                features: [holedMask(remaining)!],
+                features: [
+                    remaining
+                        ? holedMask(remaining)!
+                        : (BLANK_GEOJSON.features[0] as Feature<Polygon>),
+                ],
             };
 
             map.eachLayer((layer: any) => {
@@ -307,21 +320,26 @@ export const Map = ({ className }: { className?: string }) => {
             // @ts-expect-error This is a check such that only this type of layer is removed
             g.eliminationGeoJSON = true;
             g.addTo(map);
-            const outline = L.geoJSON(turf.polygonToLine(remaining) as any, {
-                style: { className: "elimination-outline", weight: 2 },
-                interactive: false,
-            });
-            // @ts-expect-error Removed together with the shading
-            outline.eliminationGeoJSON = true;
-            outline.addTo(map);
+            if (remaining) {
+                const outline = L.geoJSON(
+                    turf.polygonToLine(remaining) as any,
+                    {
+                        style: { className: "elimination-outline", weight: 2 },
+                        interactive: false,
+                    },
+                );
+                // @ts-expect-error Removed together with the shading
+                outline.eliminationGeoJSON = true;
+                outline.addTo(map);
+            }
 
             questionFinishedMapData.set(mapGeoData);
         } catch (error) {
             console.log(error);
 
-            if (document.querySelectorAll(".Toastify__toast").length === 0) {
-                toast.error("No solutions found / error occurred");
-            }
+            toast.error("Something went wrong while drawing the map", {
+                toastId: "map-error",
+            });
         } finally {
             isLoading.set(false);
         }

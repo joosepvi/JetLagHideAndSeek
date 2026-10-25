@@ -132,6 +132,9 @@ export async function applyQuestionsToMapGeoData(
 
         mapGeoData = await adjustMapGeoDataForQuestion(question, mapGeoData);
 
+        // No spot fits all answers so far: nothing left to cut
+        if (!mapGeoData) return { type: "FeatureCollection", features: [] };
+
         if (mapGeoData.type !== "FeatureCollection") {
             mapGeoData = {
                 type: "FeatureCollection",

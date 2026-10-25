@@ -247,3 +247,20 @@ div.leaflet-control-attribution.leaflet-control {
 [data-tutorial-active="true"] [role="dialog"] {
     position: fixed !important;
 }
+
+/* Message close button: a finger-sized target (about 40 px) instead of the small
+   default cross, for phones */
+.Toastify .Toastify__close-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 40px;
+    min-height: 40px;
+    margin: -10px -10px -10px 4px;
+    align-self: center;
+    opacity: 0.8;
+}
+.Toastify .Toastify__close-button > svg {
+    width: 20px;
+    height: 20px;
+}

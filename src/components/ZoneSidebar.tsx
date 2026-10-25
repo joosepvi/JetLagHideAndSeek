@@ -518,6 +518,18 @@ export const ZoneSidebar = () => {
                 }
             }
 
+            // The game has no answer only when no hiding zone fits every answer.
+            // A fully shaded map alone doesn't mean that: the hider may have
+            // moved inside their zone between questions.
+            if (circles.length === 0 && places.length > 0) {
+                toast.error(
+                    "No solutions found: no hiding zone fits all the answers",
+                    { toastId: "no-solutions" },
+                );
+            } else {
+                toast.dismiss("no-solutions");
+            }
+
             setStations(circles);
             setEliminatedStops(eliminated);
         };
